@@ -1,0 +1,19 @@
+{
+  "name": "wifi-led-control-server",
+  "version": "1.0.0",
+  "description": "Control server for wifi LEDs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcguinnessa/wifi-led-control-server.git"
+  },
+  "author": "Alex McGuinness",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mcguinnessa/wifi-led-control-server/issues"
+  },
+  "homepage": "https://github.com/mcguinnessa/wifi-led-control-server#readme"
+}
