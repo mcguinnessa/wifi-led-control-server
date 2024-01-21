@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/mcguinnessa/wifi-led-control-server/issues"
   },
-  "homepage": "https://github.com/mcguinnessa/wifi-led-control-server#readme"
+  "homepage": "https://github.com/mcguinnessa/wifi-led-control-server#readme",
+  "dependencies": {
+    "express": "^4.18.2"
+  }
 }
