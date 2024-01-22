@@ -3,7 +3,8 @@ const http = require('http');
 const express = require('express')
 const app = express()
 
-DEFAULT_TIME_TO_SLEEP_MS = 60 * 60 * 1000
+//DEFAULT_TIME_TO_SLEEP_MS = 60 * 60 * 1000
+DEFAULT_TIME_TO_SLEEP_MS = 60 * 1000
 
 //mergeParams allows the next router to access params
 var idRouter = express.Router({mergeParams: true}); 
@@ -106,9 +107,8 @@ idRouter.route('/tts/:tts')
       node = data[req.params.id]
       node["tts"] = req.params.tts
 
-      //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
       res.json(data)
-      console.log('status id ' + req.params.id + " tts:" + req.params.state);
+      console.log('status id ' + req.params.id + " tts:" + req.params.tts);
   });
 
 idRouter.route('/admin/reset')
