@@ -3,8 +3,6 @@
 import getopt, sys
 import requests
 
-
-
 #/db5/lights/on
 #/db5/lights/off
 #/db5/status/lights
@@ -12,17 +10,19 @@ import requests
 #/db5/admin/reset
 
 def usage():
-   print(sys.argv[0] + "  [-l light_state] [-h host] [--reset] [-s lights|vcc]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-l light_state]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [--reset]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-t time_to_sleep] ")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-s lights|reset|tts|vcc|all]")
 
 end_point = None
-host = "192.168.0.124"
-port = 3000
+host = None
+port = None
 id = ""
 command = None
 
-
 try:
-   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:", ["help", "lights=", "host=", "port=", "reset", "status=", "id="])
+   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:", ["help", "lights=", "host=", "port=", "reset", "status=", "id=", "tts="])
 
    for o, a in opts:
       if o in ("-l", "--lights="):
@@ -40,6 +40,9 @@ try:
          port = a
       elif o in ("-i", "--id="):
          id = a
+      elif o in ("-t", "--tts="):
+         command = "PUT"
+         end_point = "/tts/" + a
       elif o in ("--reset"):
          command = "PUT"
          end_point = "/admin/reset"
@@ -56,7 +59,7 @@ except getopt.GetoptError as err:
 #reset = False
 #status = None
 
-if not end_point or not id:
+if not end_point or not id or not host or not port:
    usage()
    sys.exit()
 

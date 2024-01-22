@@ -1,11 +1,12 @@
 const http = require('http');
-var fs = require('fs');
+//var fs = require('fs');
 const express = require('express')
 const app = express()
 
-var idRouter = express.Router({mergeParams: true}); 
+DEFAULT_TIME_TO_SLEEP_MS = 60 * 60 * 1000
+
 //mergeParams allows the next router to access params
-//var actionRouter = express.Router({mergeParams: true}); 
+var idRouter = express.Router({mergeParams: true}); 
 
 /**
 /db5/lights/on
@@ -15,9 +16,10 @@ var idRouter = express.Router({mergeParams: true});
 /db5/admin/reset
 */
 
-//const hostname = '127.0.0.1';
-const hostname = '192.168.0.124';
+//const hostname = '192.168.0.124';
+const hostname = '';
 const port = 3000;
+//const port = 0;
 
 lights_tag = "lights";
 reset_tag = "reset";
@@ -27,9 +29,13 @@ var data = {}
 
 //lights_state = "off"
 
-state = {
-   lights: "off",
-   reset: 0
+//state = {
+//   lights: "off",
+//   reset: 0
+//}
+
+function get_base_struct() {
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" }
 }
 
 //idRouter.use('/:id', actionRouter);
@@ -82,7 +88,7 @@ idRouter.route('/status/:metric')
 idRouter.route('/lights/:state')
    .put(function (req, res){
       if (!(req.params.id in data)){
-         data[req.params.id] = {}
+         data[req.params.id] = get_base_struct()
       }
       node = data[req.params.id]
       node["lights"] = req.params.state
@@ -92,10 +98,23 @@ idRouter.route('/lights/:state')
       console.log('status id ' + req.params.id + " lights:" + req.params.state);
   });
 
+idRouter.route('/tts/:tts')
+   .put(function (req, res){
+      if (!(req.params.id in data)){
+         data[req.params.id] = get_base_struct()
+      }
+      node = data[req.params.id]
+      node["tts"] = req.params.tts
+
+      //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
+      res.json(data)
+      console.log('status id ' + req.params.id + " tts:" + req.params.state);
+  });
+
 idRouter.route('/admin/reset')
    .put(function (req, res){
       if (!(req.params.id in data)){
-         data[req.params.id] = {}
+         data[req.params.id] = get_base_struct()
       }
       node = data[req.params.id]
       node["reset"] = "true"
