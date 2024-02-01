@@ -88,6 +88,7 @@ try:
    print(data)
 except requests.exceptions.ConnectionError as e:
    print("Unable to connect to " + str(url))
+   print("Error:" + str(e))
 except Exception as e:
    print("Exception thrown:" + str(e))
    import traceback
