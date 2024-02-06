@@ -19,7 +19,7 @@ var idRouter = express.Router({mergeParams: true});
 
 //const hostname = '192.168.0.124';
 const hostname = '';
-const port = 3000;
+const port = 4000;
 //const port = 0;
 
 lights_tag = "lights";
@@ -27,16 +27,8 @@ reset_tag = "reset";
 
 var data = {}
 
-
-//lights_state = "off"
-
-//state = {
-//   lights: "off",
-//   reset: 0
-//}
-
 function get_base_struct() {
-   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" }
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false"}
 }
 
 //idRouter.use('/:id', actionRouter);
@@ -119,107 +111,22 @@ idRouter.route('/admin/reset')
       node = data[req.params.id]
       node["reset"] = "true"
 
-      //res.status(200).send("set lights for " + req.params.id );
       res.json(data)
       console.log('reset id ' + req.params.id);
   });
 
-//actionRouter.route('/')
-//   .get(function (req, res) {
-//      res.status(200)
-//         .send('hello actions from id '  +req.params.id);
-//  })
+idRouter.route('/admin/discovery')
+   .put(function (req, res){
+      if (!(req.params.id in data)){
+         data[req.params.id] = get_base_struct()
+      }
+      node = data[req.params.id]
+      node["discovery"] = "true"
 
-//app.get('/:id/status', (req, res) => {
-//   id = +req.params["id"]
-//   console.log("getting status")
-//   console.log("ID:"+id)
-//   console.log("STATE:"+JSON.stringify(state))
-//   //res.send(JSON.stringify(state))
-//   res.send(req.params)
-//})
-//
-//app.get('/:id/status/:element', (req, res) => {
-//   id = +req.params["id"]
-//   el = +req.params["element"]
-//   console.log("getting status")
-//   console.log("ID:"+id)
-//   console.log("Element:"+element)
-//   console.log("STATE:"+JSON.stringify(state))
-//
-//   if (!(id in data)){
-//      data[id] = {element : 0}
-//   }
+      res.json(data)
+      console.log('discovery id ' + req.params.id);
+  });
 
-//   //res.send(JSON.stringify(state))
-//   res.send(req.params)
-//})
-
-//app.put('/:id/lights/:state', (req, res) => {
-//   console.log("setting lights")
-//   id = req.params["id"]
-//   state = req.params["state"]
-//   console.log("ID:"+id)
-//   console.log("STATE:"+state)
-//
-//   if (!(id in data)){
-//      data[id] = {}
-//   }
-//   node = data[id]
-//   node["lights"] = state
-//   
-//   console.log("STATE:"+JSON.stringify(data))
-//
-//   res.send(JSON.stringify(data))
-//})
-
-
-//led_state = {
-//   lights: state["lights"]
-//}
-
-//const server = http.createServer((req, res) => {
-
-
-//  res.setHeader('Content-Type', 'text/plain');
-//  if( req.method === 'GET') {
-//     if (req.url === '/') {
-//        res.end(`{"error": "${http.STATUS_CODES[404]}"}`)
-//     }else if (req.url === '/db5/status') {
-//        console.log("REQ:"+JSON.stringify(state))
-//        res.end(JSON.stringify(state));
-//        state[reset] = 0
-//     }else if (req.url === '/db5/status/vcc') {
-//        res.end('<h1>VCC Status</h1>');
-//     }else if (req.url === '/db5/status/lights') {
-//        console.log("REQ:"+JSON.stringify(led_state))
-//        res.end(JSON.stringify(led_state));
-//     } else{
-//        res.end(`{"error": "${http.STATUS_CODES[404]}"}`)
-//     }
-//  
-//  } else if( req.method === 'PUT') {
-//     if (req.url === '/db5/lights/off') {
-//        state[lights_tag] = "off";
-//        //lights_state = "off"
-//     }else if (req.url === '/db5/lights/on') {
-//        state[lights_tag] = "on";
-//        //lights_state = "on"
-//     }else if (req.url === '/db5/admin/reset') {
-//        //led_state[reset_tag] = "on";
-//        state[reset] = 0
-//     } else {
-//        res.end(`{"error": "${http.STATUS_CODES[404]}"}`)
-//     }
-//     console.log(JSON.stringify(state))
-//
-//     res.end(JSON.stringify(state));
-//  }
-//});
-
-//server.listen(port, hostname, () => {
-//  console.log(`Server running at http://${hostname}:${port}/`);
-//});
 
 app.listen(port, hostname, () => {
    console.log(`Server running at http://${hostname}:${port}/`);

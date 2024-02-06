@@ -9,19 +9,25 @@ import requests
 #/db5/status/vcc
 #/db5/admin/reset
 
+
+elements = ["lights", "reset", "tts", "lsc", "vcc", "discovery", "all"]
+
 def usage():
-   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-l light_state]")
-   print(sys.argv[0] + " [-i id] [-h host] [-p port] [--reset]")
-   print(sys.argv[0] + " [-i id] [-h host] [-p port] [--discovery]")
-   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-t time_to_sleep] ")
-   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-s lights|reset|tts|vcc|all]")
+
+   el_str = "|".join(elements)
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-l light_state]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [--reset]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [--discovery]")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-t time_to_sleep] ")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-s "+ el_str+"]")
 
 end_point = None
-routing_prefix = ""
+routing_prefix = None
 host = None
-port = None
+port = "80"
 id = ""
 command = None
+
 
 try:
    opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts="])
@@ -34,7 +40,11 @@ try:
          if "all" == a:
             end_point = "/status"
          else:
-            end_point = "/status/" + a
+            if a in elements:
+               end_point = "/status/" + a
+            else:
+               print("Unknown status element:" + a)
+               #usage()
          command = "GET"
       elif o in ("-h", "--host="):
          host = a
@@ -53,15 +63,20 @@ try:
       elif o in ("--discovery"):
          command = "PUT"
          end_point = "/admin/send-discovery"
+      elif o in ("-?"):
+         print("Usage requested")
+#         usage()
+#         sys.exit(2)
       else:
          print("o=" + str(o) + " a=" + str(a))
          assert False, "unhandled option"
-
+#         usage()
+#         sys.exit(2)
 except getopt.GetoptError as err:
    # print help information and exit:
    print(err)  # will print something like "option -a not recognized"
    usage()
-#   sys.exit(2)
+   sys.exit(2)
 
 #reset = False
 #status = None
@@ -83,7 +98,8 @@ try:
 #   else:
 #      end_point = "/"+command+"/" + status
 
-   url = "http://" + host +":"+ str(port) + "/" + routing_prefix + "/" + id + end_point
+   url = "http://" + host +":"+ str(port) + ("/" + routing_prefix if routing_prefix else "") + "/" + id + end_point
+
    print(command + " URL:" + url)
 
    if command == "GET":
