@@ -60,6 +60,7 @@ idRouter.route('/status')
 
       //Reset to false after called once
       data[req.params.id]['reset'] = "false"; 
+      data[req.params.id]['discovery'] = "false"; 
   });
 
 idRouter.route('/status/:metric')
@@ -73,6 +74,10 @@ idRouter.route('/status/:metric')
             node[req.params.metric] 
             console.log(node)
             rc = { [req.params.metric] : node[req.params.metric] }
+
+            if(data[req.params.metric] == true){
+               data[req.params.metric] = false
+            }
          }
       }
       res.json(rc)
@@ -115,7 +120,7 @@ idRouter.route('/admin/reset')
       console.log('reset id ' + req.params.id);
   });
 
-idRouter.route('/admin/discovery')
+idRouter.route('/admin/send-discovery')
    .put(function (req, res){
       if (!(req.params.id in data)){
          data[req.params.id] = get_base_struct()
