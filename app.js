@@ -79,10 +79,14 @@ idRouter.route('/lights')
          data[id] = get_base_struct()
       }
 
+
       if(req.body.state){
          node = data[id]
          node[lights_tag] = req.body.state
+      } else {
+         node = {}
       }
+
 
       //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
       console.log(node)
@@ -250,8 +254,8 @@ idRouter.route('/status')
       node = {}
       if (id in data){
          node = data[id] 
-//      } else {
-//         data[id] = {}
+      } else {
+         data[id] = {}
       }
       console.log(node)
       res.json(node)
@@ -259,6 +263,7 @@ idRouter.route('/status')
       //Reset to false after called once
       data[id][reset_tag] = "false"; 
       data[id][discovery_tag] = "false"; 
+      console.log(node)
   });
 
 //idRouter.route('/status/:metric')
