@@ -42,7 +42,8 @@ const lights_tag = "lights";
 const reset_tag = "reset";
 const discovery_tag = "discovery";
 const tts_tag = "tts";
-//const state_tag = "state";
+const state_tag = "state";
+const value_tag = "value";
 
 var data = {}
 
@@ -83,14 +84,17 @@ idRouter.route('/lights')
       if(req.body.state){
          node = data[id]
          node[lights_tag] = req.body.state
-      } else {
-         node = {}
+//      } else {
+//         node = {}
       }
 
 
       //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
-      console.log(node)
-      res.json(node)
+
+      rc = {}
+      rc[state_tag] = data[id].lights
+      console.log(rc)
+      res.json(rc)
   })
    .get( function (req, res){
       const id = req.params.id;
@@ -99,7 +103,7 @@ idRouter.route('/lights')
       if ((id in data)){
          node = data[id]
          if(node.lights){
-            state[lights_tag] = node.lights;
+            state[state_tag] = node.lights;
          }
       }
       console.log(state)
@@ -136,7 +140,7 @@ idRouter.route('/send-discovery')
       if ((id in data)){
          node = data[id]
          if(node.discovery){
-            state[discovery_tag] = node.discovery;
+            state[state_tag] = node.discovery;
          }
       }
       console.log(state)
@@ -173,7 +177,7 @@ idRouter.route('/reset')
       if ((id in data)){
          node = data[id]
          if(node.reset){
-            state[reset_tag] = node.reset;
+            state[state_tag] = node.reset;
          }
       }
       console.log(state)
@@ -209,7 +213,7 @@ idRouter.route('/tts')
       if ((id in data)){
          node = data[id]
          if(node.tts){
-            state[tts_tag] = node.tts;
+            state[value_tag] = node.tts;
          }
       }
       console.log(state)
@@ -217,34 +221,6 @@ idRouter.route('/tts')
   });
 
 
-
-//idRouter.route('/tts')
-//   .put( function (req, res){
-//      console.log("Setting Time to Sleep state for " + req.body.id + " to " + req.body.value)
-//      console.log(req.body.id)
-//      console.log(req.body.value)
-//
-//      if (!(req.body.id in data)){
-//         data[req.body.id] = get_base_struct()
-//      }
-//      node = data[req.body.id]
-//      node["tts"] = req.body.value
-//
-//      //res.status(200).send("set time to sleep for " + req.params.id + " " + req.params.value);
-//      res.json(node)
-//  })
-//   .get( function (req, res){
-//      console.log("Getting Time to Sleep state for " + req.body.id)
-//      tts = {};
-//      if ((req.body.id in data)){
-//         node = data[req.body.id]
-//         if(node.tts){
-//            tts["tts"] = node.tts;
-//         }
-//      }
-//      console.log(tts)
-//      res.json(tts)
-//  });
 
 idRouter.route('/status')
    .get(function (req, res){
