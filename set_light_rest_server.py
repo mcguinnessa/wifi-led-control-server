@@ -3,14 +3,19 @@
 import getopt, sys
 import requests
 
-#/db5/lights/on
-#/db5/lights/off
-#/db5/status/lights
-#/db5/status/vcc
-#/db5/admin/reset
+#/db5/lights
+#/db5/status
+#/db5/reset
+#/db5/send-discovery
 
 
-elements = ["lights", "reset", "tts", "lsc", "vcc", "discovery", "all"]
+LIGHTS = "lights"
+RESET = "reset"
+TTS = "tts"
+DISCOVERY = "discovery"
+
+#elements = ["lights", "reset", "tts", "discovery", "all"]
+elements = [LIGHTS, RESET, TTS,  DISCOVERY, "all"]
 
 def usage():
 
@@ -32,19 +37,30 @@ command = None
 try:
    opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts="])
 
+   payload = {}
    for o, a in opts:
       if o in ("-l", "--lights="):
-         end_point = "/lights/" + a
+         end_point = "/lights"
          command = "PUT"
+
+         print("Arg:" + a)    
+         if a in ( "on", "ON" , "1"):
+            payload = { 'state': 'on' }
+         else:
+            payload = { 'state': 'off' }
+
       elif o in ("-s", "--status="):
          if "all" == a:
             end_point = "/status"
-         else:
-            if a in elements:
-               end_point = "/status/" + a
-            else:
-               print("Unknown status element:" + a)
-               #usage()
+         elif LIGHTS == a:
+            end_point = "/lights"
+         elif TTS == a:
+            end_point = "/tts"
+         elif DISCOVERY == a:
+            end_point = "/send-discovery"
+         elif RESET == a:
+            end_point = "/reset"
+        
          command = "GET"
       elif o in ("-h", "--host="):
          host = a
@@ -56,30 +72,27 @@ try:
          routing_prefix = a
       elif o in ("-t", "--tts="):
          command = "PUT"
-         end_point = "/tts/" + a
+         end_point = "/tts"
+         payload = { 'value': a }
+
       elif o in ("--reset"):
          command = "PUT"
-         end_point = "/admin/reset"
+         end_point = "/reset"
+         payload = { 'state': 'true' }
       elif o in ("--discovery"):
          command = "PUT"
-         end_point = "/admin/send-discovery"
+         end_point = "/send-discovery"
+         payload = { 'state': 'true' }
       elif o in ("-?"):
          print("Usage requested")
-#         usage()
-#         sys.exit(2)
       else:
          print("o=" + str(o) + " a=" + str(a))
          assert False, "unhandled option"
-#         usage()
-#         sys.exit(2)
 except getopt.GetoptError as err:
    # print help information and exit:
    print(err)  # will print something like "option -a not recognized"
    usage()
    sys.exit(2)
-
-#reset = False
-#status = None
 
 if not end_point or not id or not host or not port:
    usage()
@@ -88,15 +101,9 @@ if not end_point or not id or not host or not port:
 
 import http.client
 
-headers = {}
+headers = {'Content-type': 'application/json'}
 
 try:
-
-#   url = "http://" + host +":"+ str(port)
-#   if reset: 
-#      end_point = "/admin/reset" 
-#   else:
-#      end_point = "/"+command+"/" + status
 
    url = "http://" + host +":"+ str(port) + ("/" + routing_prefix if routing_prefix else "") + "/" + id + end_point
 
@@ -105,7 +112,9 @@ try:
    if command == "GET":
       r = requests.get(url )
    elif command == "PUT":
-      r = requests.put(url )
+      print("payload:" + str(payload))
+      r = requests.put(url , json=payload, headers=headers)
+#      r = requests.put(url , params=payload, headers=headers)
 
    data = r.json()
    print(data)
