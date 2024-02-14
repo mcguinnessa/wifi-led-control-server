@@ -43,7 +43,6 @@ try:
          end_point = "/lights"
          command = "PUT"
 
-         print("Arg:" + a)    
          if a in ( "on", "ON" , "1"):
             payload = { 'state': 'on' }
          else:
