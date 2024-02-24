@@ -51,8 +51,15 @@ function get_base_struct() {
    return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false"}
 }
 
+app.route('/')
+   .get(function (req, res) {
+      res.status(400)
+         .send("No Action");
+   });
+
 //idRouter.use('/:id', actionRouter);
 app.use('/:id', idRouter);
+
 
 idRouter.route('/')
    .get(function (req, res) {
@@ -62,7 +69,7 @@ idRouter.route('/')
 //         lights: 'on',
 //         reset: 'false'
 //      }) 
-      res.status(200)
+      res.status(400)
          .send("No Action");
    });
 
@@ -234,7 +241,15 @@ idRouter.route('/status')
          data[id] = {}
       }
       console.log(node)
-      res.json(node)
+      //res.json(node)
+
+      rc = {}
+      rc[lights_tag] = node.lights;
+      rc[reset_tag] = node.reset;
+      rc[discovery_tag] = node.discovery;
+
+      res.setHeader("Content-Type", "application/json");
+      res.json(rc)
 
       //Reset to false after called once
       data[id][reset_tag] = "false"; 
