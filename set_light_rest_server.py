@@ -13,9 +13,10 @@ LIGHTS = "lights"
 RESET = "reset"
 TTS = "tts"
 DISCOVERY = "discovery"
+MODE = "mode"
 
 #elements = ["lights", "reset", "tts", "discovery", "all"]
-elements = [LIGHTS, RESET, TTS,  DISCOVERY, "all"]
+elements = [LIGHTS, RESET, TTS,  DISCOVERY, MODE, "all"]
 
 def usage():
 
@@ -24,6 +25,7 @@ def usage():
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [--reset]")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [--discovery]")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-t time_to_sleep] ")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-m prog|deep]")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-s "+ el_str+"]")
 
 end_point = None
@@ -35,7 +37,7 @@ command = None
 
 
 try:
-   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts="])
+   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:m:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts=", "mode="])
 
    payload = {}
    for o, a in opts:
@@ -59,6 +61,8 @@ try:
             end_point = "/send-discovery"
          elif RESET == a:
             end_point = "/reset"
+         elif MODE == a:
+            end_point = "/mode"
         
          command = "GET"
       elif o in ("-h", "--host="):
@@ -73,6 +77,10 @@ try:
          command = "PUT"
          end_point = "/tts"
          payload = { 'value': a }
+      elif o in ("-m", "--mode="):
+         command = "PUT"
+         end_point = "/mode"
+         payload = { 'mode': a }
 
       elif o in ("--reset"):
          command = "PUT"

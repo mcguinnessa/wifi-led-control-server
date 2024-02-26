@@ -31,6 +31,8 @@ PUT /id/discovery { state: true}
 GET /id/discovery 
 PUT /id/reset { state: true}
 GET /id/reset 
+PUT /id/mode { mode: deep}
+GET /id/mode 
 */
 
 //const hostname = '192.168.0.124';
@@ -38,7 +40,7 @@ const hostname = '';
 const port = 4000;
 //const port = 0;
 
-const lights_tag = "lights";
+const lights_tag = 'lights';
 const reset_tag = "reset";
 const discovery_tag = "discovery";
 const tts_tag = "tts";
@@ -48,7 +50,7 @@ const value_tag = "value";
 var data = {}
 
 function get_base_struct() {
-   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false"}
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false", mode: "prog"}
 }
 
 app.route('/')
@@ -87,7 +89,6 @@ idRouter.route('/lights')
          data[id] = get_base_struct()
       }
 
-
       if(req.body.state){
          node = data[id]
          node[lights_tag] = req.body.state
@@ -102,8 +103,14 @@ idRouter.route('/lights')
       rc[state_tag] = data[id].lights
       console.log(rc)
       res.json(rc)
+      res.end()
   })
+
+idRouter.route('/lights')
    .get( function (req, res){
+      //res.setHeader('Content-Type', 'application/json');
+      //console.log(req)
+
       const id = req.params.id;
       console.log("Getting Light state for " + id)
       state = {};
@@ -112,9 +119,15 @@ idRouter.route('/lights')
          if(node.lights){
             state[state_tag] = node.lights;
          }
+         res.status(200)
+         res.json(state)
+
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
       console.log(state)
-      res.json(state)
+      res.end()
   });
 
 idRouter.route('/send-discovery')
@@ -127,18 +140,22 @@ idRouter.route('/send-discovery')
       console.log("ID:" + id)
       console.log("State:" + req.body.state)
 
-      if (!(id in data)){
-         data[id] = get_base_struct()
-      }
+      if (id in data){
+         if(req.body.state){
+            node = data[id]
+            node[discovery_tag] = req.body.state
 
-      if(req.body.state){
-         node = data[id]
-         node[discovery_tag] = req.body.state
+            state = {}
+            state[state_tag] = node.discovery;
+            res.json(state)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
 
       //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
-      console.log(node)
-      res.json(node)
+      res.end()
   })
    .get( function (req, res){
       const id = req.params.id;
@@ -148,10 +165,14 @@ idRouter.route('/send-discovery')
          node = data[id]
          if(node.discovery){
             state[state_tag] = node.discovery;
+            res.json(state)
          }
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
-      console.log(state)
-      res.json(state)
+      //console.log(state)
+      res.end()
   });
 
 idRouter.route('/reset')
@@ -164,18 +185,23 @@ idRouter.route('/reset')
       console.log("ID:" + id)
       console.log("State:" + req.body.state)
 
-      if (!(id in data)){
-         data[id] = get_base_struct()
-      }
+      if (id in data){
+         if(req.body.state){
+            node = data[id]
+            node[reset_tag] = req.body.state
 
-      if(req.body.state){
-         node = data[id]
-         node[reset_tag] = req.body.state
+            state = {}
+            state[state_tag] = node.reset
+            res.json(state)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
 
       //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
-      console.log(node)
-      res.json(node)
+      //console.log(node)
+      res.end()
   })
    .get( function (req, res){
       const id = req.params.id;
@@ -186,9 +212,13 @@ idRouter.route('/reset')
          if(node.reset){
             state[state_tag] = node.reset;
          }
+         res.json(state)
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
-      console.log(state)
-      res.json(state)
+      //console.log(state)
+      res.end()
   });
 
 idRouter.route('/tts')
@@ -201,17 +231,22 @@ idRouter.route('/tts')
       console.log("ID:" + id)
       console.log("Value:" + req.body.value)
 
-      if (!(id in data)){
-         data[id] = get_base_struct()
+      if (id in data){
+         if(req.body.value){
+            node = data[id]
+            node[tts_tag] = req.body.value
+
+            state = {} 
+            state[value_tag] = node.tts;
+            res.json(state)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
 
-      if(req.body.value){
-         node = data[id]
-         node[tts_tag] = req.body.value
-      }
-
-      console.log(node)
-      res.json(node)
+//      console.log(node)
+      res.end()
   })
    .get( function (req, res){
       const id = req.params.id;
@@ -222,9 +257,13 @@ idRouter.route('/tts')
          if(node.tts){
             state[value_tag] = node.tts;
          }
+         console.log(state)
+         res.json(state)
+      } else {
+         res.status(404)
+         .send("Not Found");
       }
-      console.log(state)
-      res.json(state)
+      res.end()
   });
 
 
@@ -238,7 +277,9 @@ idRouter.route('/status')
       if (id in data){
          node = data[id] 
       } else {
-         data[id] = {}
+         //data[id] = {}
+         res.status(404)
+         .send("Not Found");
       }
       console.log(node)
       //res.json(node)
@@ -248,7 +289,7 @@ idRouter.route('/status')
       rc[reset_tag] = node.reset;
       rc[discovery_tag] = node.discovery;
 
-      res.setHeader("Content-Type", "application/json");
+      //res.setHeader("Content-Type", "application/json");
       res.json(rc)
 
       //Reset to false after called once
@@ -257,75 +298,6 @@ idRouter.route('/status')
       console.log(node)
   });
 
-//idRouter.route('/status/:metric')
-//   .get(function (req, res){
-////      res.status(200).send('status id ' + req.params.id + " metric:" + req.params.metric);
-//      console.log('status id ' + req.params.id + " metric:" + req.params.metric);
-//      rc = {}
-//      if (req.params.id in data){
-//         node = data[req.params.id] 
-//         if (req.params.metric in node){
-//            node[req.params.metric] 
-//            console.log(node)
-//            rc = { [req.params.metric] : node[req.params.metric] }
-//
-//            if(data[req.params.metric] == true){
-//               data[req.params.metric] = false
-//            }
-//         }
-//      }
-//      res.json(rc)
-//  });
-//
-//idRouter.route('/lights/:state')
-//   .put(function (req, res){
-//      if (!(req.params.id in data)){
-//         data[req.params.id] = get_base_struct()
-//      }
- //     node = data[req.params.id]
-//      node["lights"] = req.params.state
-//
-//      //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
-//      res.json(data)
-//      console.log('status id ' + req.params.id + " lights:" + req.params.state);
-//  });
-//
-//idRouter.route('/tts/:tts')
-//   .put(function (req, res){
-//      if (!(req.params.id in data)){
-//         data[req.params.id] = get_base_struct()
-//      }
-//      node = data[req.params.id]
-//      node["tts"] = req.params.tts
-//
-//      res.json(data)
-//      console.log('status id ' + req.params.id + " tts:" + req.params.tts);
-//  });
-//
-//idRouter.route('/admin/reset')
-//   .put(function (req, res){
-//      if (!(req.params.id in data)){
-//         data[req.params.id] = get_base_struct()
-//      }
-//      node = data[req.params.id]
-//      node["reset"] = "true"
-//
-//      res.json(data)
-//      console.log('reset id ' + req.params.id);
-//  });
-//
-//idRouter.route('/admin/send-discovery')
-//   .put(function (req, res){
-//      if (!(req.params.id in data)){
-//         data[req.params.id] = get_base_struct()
-//      }
-//      node = data[req.params.id]
-//      node["discovery"] = "true"
-//
-//      res.json(data)
-//      console.log('discovery id ' + req.params.id);
-//  });
-//
 
 app.listen(port, hostname, () => {
    console.log(`Server running at http://${hostname}:${port}/`);
