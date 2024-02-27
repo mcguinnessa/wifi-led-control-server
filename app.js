@@ -23,16 +23,17 @@ app.use(express.urlencoded({ extended: true }));       // for application/x-www-
 /db5/status/lights
 /db5/admin/reset
 
-PUT /id/lights { state: on}
-GET /id/lights 
-PUT /id/tts { value: 666}
-GET /id/tts 
-PUT /id/discovery { state: true}
-GET /id/discovery 
-PUT /id/reset { state: true}
-GET /id/reset 
-PUT /id/mode { mode: deep}
-GET /id/mode 
+PUT /id1/lights { state: on}
+GET /id1/lights 
+PUT /id1/tts { value: 666}
+GET /id1/tts 
+PUT /id1/discovery { state: true}
+GET /id1/discovery 
+PUT /id1/reset { state: true}
+GET /id1/reset 
+DELETE /id1
+PUT /mode { mode: deep}
+GET /mode 
 */
 
 //const hostname = '192.168.0.124';
@@ -46,6 +47,7 @@ const discovery_tag = "discovery";
 const tts_tag = "tts";
 const state_tag = "state";
 const value_tag = "value";
+const id_tag = "id";
 
 var data = {}
 
@@ -71,9 +73,35 @@ idRouter.route('/')
 //         lights: 'on',
 //         reset: 'false'
 //      }) 
-      res.status(400)
+      res.status(404)
          .send("No Action");
    });
+
+idRouter.route('/')
+   .delete(function (req, res) {
+      const id = req.params.id;
+      console.log("Deleting "+id)
+
+      if ((id in data)){
+
+         delete data[id]
+         //node = data[id]
+         //if(node.lights){
+         //   state[state_tag] = node.lights;
+        // }
+         rc = {}
+         rc[id_tag] = id
+         res.status(200)
+         res.json(id)
+         console.log(rc)
+
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+      res.end()
+  });
+ 
 
 idRouter.route('/lights')
    .put( function (req, res){
@@ -274,28 +302,38 @@ idRouter.route('/status')
       const id = req.params.id;
       console.log("Getting status for id: " + id)
       node = {}
+
       if (id in data){
          node = data[id] 
+
+         rc = {}
+         rc[lights_tag] = node.lights;
+         rc[reset_tag] = node.reset;
+         rc[discovery_tag] = node.discovery;
+         rc[tts_tag] = node.tts;
+         res.json(rc)
+
+         console.log(rc)
+
+         data[id][reset_tag] = "false"; 
+         data[id][discovery_tag] = "false"; 
+        
       } else {
          //data[id] = {}
          res.status(404)
          .send("Not Found");
       }
-      console.log(node)
+      //console.log(node)
       //res.json(node)
 
-      rc = {}
-      rc[lights_tag] = node.lights;
-      rc[reset_tag] = node.reset;
-      rc[discovery_tag] = node.discovery;
 
       //res.setHeader("Content-Type", "application/json");
-      res.json(rc)
+      res.end()
 
       //Reset to false after called once
-      data[id][reset_tag] = "false"; 
-      data[id][discovery_tag] = "false"; 
-      console.log(node)
+    //  data[id][reset_tag] = "false"; 
+     // data[id][discovery_tag] = "false"; 
+      //console.log(node)
   });
 
 
