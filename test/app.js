@@ -4,7 +4,7 @@ var request = require("request");
 describe("Server for LED state", function() {
 
    var url = "http://localhost:4000/";
-   var target = "http://localhost:4000";
+   //var target = "http://localhost:4000";
 
    const new_id = "id5"
    const not_found_id = "id6"
@@ -13,6 +13,7 @@ describe("Server for LED state", function() {
    const tts_value_default = 60000;
    const send_discovery_default = 'false'
    const reset_state_default = 'false'
+   const mode_state_default = 'prog'
 
    const lights_value_initial = "on"
    const lights_value_changed = "off"
@@ -20,6 +21,7 @@ describe("Server for LED state", function() {
    const tts_value_changed = 30000;
    const reset_state_changed = 'true'
    const send_discovery_state_changed = 'true'
+   const mode_state_changed = 'deep'
 
    context('with no endpoint', function() {
       it("returns status 400 and empty body", function(done) {
@@ -249,7 +251,6 @@ describe("Server for LED state", function() {
 
    context("Set reset state for existing ID", function() {
       var endpoint = new_id+"/reset"
-      const reset_state_changed = 'true'
       it("Returns a success response", function(done) {
          request({url: url+endpoint, method: 'PUT', json: { state: reset_state_changed }}, function(error, response, body) {
             console.log(body);
@@ -286,6 +287,68 @@ describe("Server for LED state", function() {
 
 /***********************************************************************************/
 
+   context("look up mode for id that doesn't exist", function() {
+      var endpoint = not_found_id+"/mode"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up mode for id that does exist but has never been set", function() {
+      var endpoint = new_id+"/mode"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.mode).to.equal(mode_state_default);
+            done();
+         });
+      });
+   })
+
+   context("Set mode state for existing ID", function() {
+      var endpoint = new_id+"/mode"
+      it("Returns a success response", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { mode: mode_state_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.mode).to.equal(mode_state_changed);
+            done();
+         });
+      });
+   })
+
+   context("Set mode state for none existing ID", function() {
+      var endpoint = not_found_id+"/mode"
+      it("Returns a success response", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { mode: 'deep' }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up mode for id that has been changed", function() {
+      var endpoint = new_id+"/mode"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.mode).to.equal(mode_state_changed);
+            done();
+         });
+      });
+   })
+
+/***********************************************************************************/
+
    context("look up status for id that doesn't exist", function() {
       var endpoint = not_found_id+"/status"
       it("Returns a valid not found response", function(done) {
@@ -310,6 +373,7 @@ describe("Server for LED state", function() {
             expect(json.tts).to.equal(tts_value_changed);
             expect(json.discovery).to.equal(send_discovery_state_changed);
             expect(json.reset).to.equal(reset_state_changed);
+            expect(json.mode).to.equal(mode_state_changed);
             done()
          });
       });
@@ -333,6 +397,8 @@ describe("Server for LED state", function() {
             expect(json.tts).to.equal(tts_value_default);
             expect(json.discovery).to.equal(send_discovery_default);
             expect(json.reset).to.equal(reset_state_default);
+            //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);
+            expect(json.mode).equal(mode_state_default);
             done()
          });
       });

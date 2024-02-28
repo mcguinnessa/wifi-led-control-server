@@ -32,8 +32,8 @@ GET /id1/discovery
 PUT /id1/reset { state: true}
 GET /id1/reset 
 DELETE /id1
-PUT /mode { mode: deep}
-GET /mode 
+PUT /id1/mode { mode: deep}
+GET /id1/mode 
 */
 
 //const hostname = '192.168.0.124';
@@ -45,6 +45,7 @@ const lights_tag = 'lights';
 const reset_tag = "reset";
 const discovery_tag = "discovery";
 const tts_tag = "tts";
+const mode_tag = "mode";
 const state_tag = "state";
 const value_tag = "value";
 const id_tag = "id";
@@ -294,7 +295,48 @@ idRouter.route('/tts')
       res.end()
   });
 
+idRouter.route('/mode')
+   .put( function (req, res){
 
+      const id = req.params.id;
+      console.log("Setting Mode state for " + id + " (params) to " + req.body.mode)
+
+      console.log("ID:" + id)
+      console.log("State:" + req.body.mode)
+
+      if (id in data){
+         if(req.body.mode){
+            node = data[id]
+            node[mode_tag] = req.body.mode
+
+            rc = {}
+            rc[mode_tag] = node.mode
+            res.json(rc)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+
+      res.end()
+  })
+   .get( function (req, res){
+      const id = req.params.id;
+      console.log("Getting Mode for " + id)
+      rc = {};
+      if ((id in data)){
+         node = data[id]
+         if(node.mode){
+            rc[mode_tag] = node.mode;
+         }
+         res.json(rc)
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+
+      res.end()
+  });
 
 idRouter.route('/status')
    .get(function (req, res){
@@ -311,6 +353,7 @@ idRouter.route('/status')
          rc[reset_tag] = node.reset;
          rc[discovery_tag] = node.discovery;
          rc[tts_tag] = node.tts;
+         rc[mode_tag] = node.mode;
          res.json(rc)
 
          console.log(rc)
