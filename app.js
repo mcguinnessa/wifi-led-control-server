@@ -48,12 +48,13 @@ const tts_tag = "tts";
 const mode_tag = "mode";
 const state_tag = "state";
 const value_tag = "value";
+const seqid_tag = "seqid";
 const id_tag = "id";
 
 var data = {}
 
 function get_base_struct() {
-   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false", mode: "prog"}
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false", mode: "prog", seqid: 0 }
 }
 
 app.route('/')
@@ -145,7 +146,8 @@ idRouter.route('/lights')
       state = {};
       if ((id in data)){
          node = data[id]
-         if(node.lights){
+         if(node.hasOwnProperty("lights")){
+         //if(node.lights){
             state[state_tag] = node.lights;
          }
          res.status(200)
@@ -192,7 +194,8 @@ idRouter.route('/send-discovery')
       state = {};
       if ((id in data)){
          node = data[id]
-         if(node.discovery){
+         //if(node.discovery){
+         if(node.hasOwnProperty("discovery")){
             state[state_tag] = node.discovery;
             res.json(state)
          }
@@ -238,7 +241,8 @@ idRouter.route('/reset')
       state = {};
       if ((id in data)){
          node = data[id]
-         if(node.reset){
+         //if(node.reset){
+         if(node.hasOwnProperty("reset")){
             state[state_tag] = node.reset;
          }
          res.json(state)
@@ -248,6 +252,37 @@ idRouter.route('/reset')
       }
       //console.log(state)
       res.end()
+  });
+
+idRouter.route('/seqid')
+   .get( function (req, res){
+      const id = req.params.id;
+      console.log("Getting sequence ID for " + id)
+      rc = {};
+      if ((id in data)){
+         node = data[id]
+         if(node.hasOwnProperty("seqid")){
+            console.log("Sequence ID for " + id + " " + node.seqid)
+            rc[seqid_tag] = node.seqid;
+         } else {
+            console.log("Sequence ID not found")
+            console.log("NODE")
+            console.log(node)
+         }
+         res.json(rc)
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+      //console.log(state)
+      res.end()
+  });
+
+idRouter.route('/seqid')
+   .put( function (req, res){
+       res.status(403)
+       .send("Forbidden");
+       res.end()
   });
 
 idRouter.route('/tts')
@@ -283,7 +318,8 @@ idRouter.route('/tts')
       state = {};
       if ((id in data)){
          node = data[id]
-         if(node.tts){
+         //if(node.tts){
+         if(node.hasOwnProperty("tts")){
             state[value_tag] = node.tts;
          }
          console.log(state)
@@ -326,7 +362,8 @@ idRouter.route('/mode')
       rc = {};
       if ((id in data)){
          node = data[id]
-         if(node.mode){
+         //if(node.mode){
+         if(node.hasOwnProperty("mode")){
             rc[mode_tag] = node.mode;
          }
          res.json(rc)
@@ -348,18 +385,21 @@ idRouter.route('/status')
       if (id in data){
          node = data[id] 
 
+         data[id][seqid_tag] = node.seqid + 1
+
          rc = {}
          rc[lights_tag] = node.lights;
          rc[reset_tag] = node.reset;
          rc[discovery_tag] = node.discovery;
          rc[tts_tag] = node.tts;
          rc[mode_tag] = node.mode;
+         rc[seqid_tag] = node.seqid;
          res.json(rc)
 
          console.log(rc)
 
          data[id][reset_tag] = "false"; 
-         data[id][discovery_tag] = "false"; 
+         data[id][discovery_tag] = "false" 
         
       } else {
          //data[id] = {}
