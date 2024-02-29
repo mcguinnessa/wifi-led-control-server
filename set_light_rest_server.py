@@ -14,9 +14,10 @@ RESET = "reset"
 TTS = "tts"
 DISCOVERY = "discovery"
 MODE = "mode"
+SEQID = "seqid"
 
 #elements = ["lights", "reset", "tts", "discovery", "all"]
-elements = [LIGHTS, RESET, TTS,  DISCOVERY, MODE, "all"]
+elements = [LIGHTS, RESET, TTS,  DISCOVERY, MODE, SEQID, "all"]
 
 def usage():
 
@@ -63,6 +64,8 @@ try:
             end_point = "/reset"
          elif MODE == a:
             end_point = "/mode"
+         elif SEQID == a:
+            end_point = "/seqid"
         
          command = "GET"
       elif o in ("-h", "--host="):
