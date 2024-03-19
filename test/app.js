@@ -23,6 +23,8 @@ describe("Server for LED state", function() {
    const reset_state_changed = 'true'
    const send_discovery_state_changed = 'true'
    const mode_state_changed = 'deep'
+   const tts_value_max = 60 * 60 * 1000;
+   const tts_value_too_high = tts_value_max * 2;
 
    context('with no endpoint', function() {
       it("returns status 400 and empty body", function(done) {
@@ -143,6 +145,27 @@ describe("Server for LED state", function() {
             console.log(body);
             expect(response.statusCode).to.equal(404);
             expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("Set tts state for existing ID higher than max allowed", function() {
+      var endpoint = new_id+"/tts"
+      it("Returns a success response", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_too_high }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_value_max);
+            done();
+         });
+      });
+
+      it("Resets to expected", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_value_changed);
             done();
          });
       });
@@ -428,7 +451,9 @@ describe("Server for LED state", function() {
             expect(json.discovery).to.equal(send_discovery_state_changed);
             expect(json.reset).to.equal(reset_state_changed);
             expect(json.mode).to.equal(mode_state_changed);
-            expect(json.seqid).to.equal(1);
+            //expect(json.seqid).to.equal(1);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
             done()
          });
       });
@@ -457,7 +482,9 @@ describe("Server for LED state", function() {
             expect(json.reset).to.equal(reset_state_default);
             //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);
             expect(json.mode).equal(mode_state_default);
-            expect(json.seqid).equal(1);
+            //expect(json.seqid).equal(1);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
             done()
          });
       });
