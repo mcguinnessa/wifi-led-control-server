@@ -11,7 +11,7 @@ describe("Server for LED state", function() {
    const default_new_id = "id7"
    const new_id2 = "id8"
 
-   const tts_value_default = 60000;
+   const tts_value_default = 60 * 1000;
    const send_discovery_default = 'false'
    const reset_state_default = 'false'
    const mode_state_default = 'prog'
@@ -19,12 +19,14 @@ describe("Server for LED state", function() {
    const lights_value_initial = "on"
    const lights_value_changed = "off"
 
-   const tts_value_changed = 30000;
+   const tts_value_changed = 6 * 60 * 1000;
    const reset_state_changed = 'true'
    const send_discovery_state_changed = 'true'
    const mode_state_changed = 'deep'
    const tts_value_max = 60 * 60 * 1000;
    const tts_value_too_high = tts_value_max * 2;
+   const tts_value_min = 10 * 1000;
+   const tts_value_too_low = 1;
 
    context('with no endpoint', function() {
       it("returns status 400 and empty body", function(done) {
@@ -157,6 +159,27 @@ describe("Server for LED state", function() {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_max);
+            done();
+         });
+      });
+
+      it("Resets to expected", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_value_changed);
+            done();
+         });
+      });
+   })
+
+   context("Set tts state for existing ID lower than min allowed", function() {
+      var endpoint = new_id+"/tts"
+      it("Returns a success response", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_too_low }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_value_min);
             done();
          });
       });

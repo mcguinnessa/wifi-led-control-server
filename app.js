@@ -7,6 +7,7 @@ const app = express()
 //DEFAULT_TIME_TO_SLEEP_MS = 60 * 60 * 1000
 DEFAULT_TIME_TO_SLEEP_MS = 60 * 1000
 MAX_TIME_TO_SLEEP_MS = 60 * 60 * 1000
+MIN_TIME_TO_SLEEP_MS = 10 * 1000
 
 //mergeParams allows the next router to access params
 var idRouter = express.Router({mergeParams: true}); 
@@ -299,6 +300,8 @@ idRouter.route('/tts')
 
       if (tts > MAX_TIME_TO_SLEEP_MS){
          tts = MAX_TIME_TO_SLEEP_MS
+      } else if (tts < MIN_TIME_TO_SLEEP_MS){
+         tts = MIN_TIME_TO_SLEEP_MS
       }
 
       if (id in data){
