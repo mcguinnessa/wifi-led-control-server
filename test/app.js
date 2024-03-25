@@ -1,6 +1,15 @@
 var expect  = require("chai").expect;
 var request = require("request");
 
+
+//         console.log(url+new_id+"/lights");
+//         request({url: url+new_id+"/lights", method: 'PUT', json: { state:  lights_value_initial }}, function(error, response, body) {
+//            console.log(body);
+//            expect(response.statusCode).to.equal(200);
+//            expect(body.state).to.equal(lights_value_initial);
+//            done();
+//         });
+
 describe("Server for LED state", function() {
 
    var url = "http://localhost:4000/";
@@ -27,6 +36,9 @@ describe("Server for LED state", function() {
    const tts_value_too_high = tts_value_max * 2;
    const tts_value_min = 10 * 1000;
    const tts_value_too_low = 1;
+
+   const ne_value_changed = 6 * 60 * 1000;
+   const ne_value_default = 86400;
 
    context('with no endpoint', function() {
       it("returns status 400 and empty body", function(done) {
@@ -90,10 +102,9 @@ describe("Server for LED state", function() {
 
 /***********************************************************************************/
 
-   context("look up time to sleep value for id that doesn't exist", function() {
-      var endpoint = not_found_id+"/tts"
+   context("TTS: look up time to sleep value for id that doesn't exist", function() {
       it("Returns a valid not found response", function(done) {
-         request(url+endpoint, function(error, response, body) {
+         request(url+not_found_id+"/tts", function(error, response, body) {
             expect(response.statusCode).to.equal(404);
             expect(body).to.equal("Not Found");
             done();
@@ -101,10 +112,20 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("look up time to sleep value for id that does exist but has never been set", function() {
-      var endpoint = new_id+"/tts"
+   context("TTS: look up time to sleep value for id that does exist but has never been set", function() {
+
+      it("Returns a success response", function(done) {
+         console.log(url+new_id+"/lights");
+         request({url: url+new_id+"/lights", method: 'PUT', json: { state:  lights_value_initial }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.state).to.equal(lights_value_initial);
+            done();
+         });
+      });
+
       it("Returns a valid not found response", function(done) {
-         request(url+endpoint, function(error, response, body) {
+         request(url+new_id+"/tts", function(error, response, body) {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
@@ -114,10 +135,9 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("Set tts state for existing ID", function() {
-      var endpoint = new_id+"/tts"
+   context("TTS: Set tts state for existing ID", function() {
       it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_changed);
@@ -126,10 +146,9 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("look up time to sleep value for id that exists and has been changed", function() {
-      var endpoint = new_id+"/tts"
+   context("TTS: look up time to sleep value for id that exists and has been changed", function() {
       it("Returns a valid response", function(done) {
-         request(url+endpoint, function(error, response, body) {
+         request(url+new_id+"/tts", function(error, response, body) {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
@@ -139,11 +158,10 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("Set tts state for none existing ID", function() {
-      var endpoint = not_found_id+"/tts"
+   context("TTS: Set tts state for none existing ID", function() {
       const tts_value = 40000;
       it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value }}, function(error, response, body) {
+         request({url: url+not_found_id+"/tts", method: 'PUT', json: { value: tts_value }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(404);
             expect(body).to.equal("Not Found");
@@ -152,10 +170,9 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("Set tts state for existing ID higher than max allowed", function() {
-      var endpoint = new_id+"/tts"
+   context("TTS: Set tts state for existing ID higher than max allowed", function() {
       it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_too_high }}, function(error, response, body) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_too_high }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_max);
@@ -164,7 +181,7 @@ describe("Server for LED state", function() {
       });
 
       it("Resets to expected", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_changed);
@@ -173,10 +190,9 @@ describe("Server for LED state", function() {
       });
    })
 
-   context("Set tts state for existing ID lower than min allowed", function() {
-      var endpoint = new_id+"/tts"
+   context("TTS: Set tts state for existing ID lower than min allowed", function() {
       it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_too_low }}, function(error, response, body) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_too_low }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_min);
@@ -185,7 +201,7 @@ describe("Server for LED state", function() {
       });
 
       it("Resets to expected", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             expect(body.value).to.equal(tts_value_changed);
@@ -396,6 +412,75 @@ describe("Server for LED state", function() {
 
 /***********************************************************************************/
 
+   context("look up next event for id that doesn't exist", function() {
+      var endpoint = not_found_id+"/nextevent"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up next event for id that does exist but has never been set", function() {
+      var endpoint = new_id+"/nextevent"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.mode).to.equal(ne_value_default);
+            done();
+         });
+      });
+   })
+
+//   context("Set next event for existing ID", function() {
+//      var endpoint = new_id+"/nextevent"
+//      it("Returns a success response", function(done) {
+//         request({url: url+endpoint, method: 'PUT', json: { mode: mode_state_changed }}, function(error, response, body) {
+//            console.log(body);
+//            expect(response.statusCode).to.equal(200);
+//            expect(body.mode).to.equal(ne_value_changed);
+//            done();
+//         });
+//      });
+//   })
+//
+//   context("Set next event for none existing ID", function() {
+//      var endpoint = not_found_id+"/nextevent"
+//      it("Returns a success response", function(done) {
+//         request({url: url+endpoint, method: 'PUT', json: { mode: 'deep' }}, function(error, response, body) {
+//            console.log(body);
+//            expect(response.statusCode).to.equal(404);
+//            expect(body).to.equal("Not Found");
+//            done();
+//         });
+//      });
+//   })
+//
+//   context("look up mode for id that has been changed", function() {
+//      var endpoint = new_id+"/nextevent"
+//      it("Returns a valid not found response", function(done) {
+//         request(url+endpoint, function(error, response, body) {
+//            json = JSON.parse(body);
+//            expect(response.statusCode).to.equal(200);
+//            expect(json.mode).to.equal(ne_value_changed);
+//            done();
+//         });
+//
+//   context("look up tts for id that has been changed as next event", function() {
+//      var endpoint = new_id+"/nextevent"
+//      it("Returns a valid not found response", function(done) {
+//         request(url+endpoint, function(error, response, body) {
+//            json = JSON.parse(body);
+//            expect(response.statusCode).to.equal(200);
+//            expect(json.mode).to.equal(tts_value_changed);
+//            done();
+//         });
+/***********************************************************************************/
+
    context("look up sequence id for id that doesn't exist", function() {
       var endpoint = not_found_id+"/seqid"
       it("Returns a valid not found response", function(done) {
@@ -463,18 +548,27 @@ describe("Server for LED state", function() {
    })
 
    context("look up status for id that does exist", function() {
+      it("Returns a success response", function(done) {
+         console.log(url+new_id+"/lights");
+         request({url: url+new_id+"/lights", method: 'PUT', json: { state:  lights_value_initial }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.state).to.equal(lights_value_initial);
+            done();
+         });
+      });
+
       var endpoint = new_id+"/status"
       it("Returns a valid value for each parameter", function(done) {
          request(url+endpoint, function(error, response, body) {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
-            expect(json.lights).to.equal(lights_value_changed);
-            expect(json.tts).to.equal(tts_value_changed);
-            expect(json.discovery).to.equal(send_discovery_state_changed);
-            expect(json.reset).to.equal(reset_state_changed);
-            expect(json.mode).to.equal(mode_state_changed);
-            //expect(json.seqid).to.equal(1);
+            expect(json.lights).to.equal("on");
+            expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            expect(json.mode).to.equal(mode_state_default);
             expect(json.seqid).to.be.a('number');
             expect(json.seqid % 1).to.equal(0);
             done()

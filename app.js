@@ -47,6 +47,7 @@ const lights_tag = 'lights';
 const reset_tag = "reset";
 const discovery_tag = "discovery";
 const tts_tag = "tts";
+const ne_tag = "nextevent";
 const mode_tag = "mode";
 const state_tag = "state";
 const value_tag = "value";
@@ -127,7 +128,6 @@ idRouter.route('/lights')
 //      } else {
 //         node = {}
       }
-
 
       //res.status(200).send("set lights for " + req.params.id + " " + req.params.state);
 
@@ -325,11 +325,16 @@ idRouter.route('/tts')
       const id = req.params.id;
       console.log("Getting Time To Sleep value for " + id)
       state = {};
+
+      /* 
+       * If TTS is set, us that, if it is not set, the calculate it based on ttme
+       */
       if ((id in data)){
          node = data[id]
-         //if(node.tts){
          if(node.hasOwnProperty("tts")){
             state[value_tag] = node.tts;
+         } else if(node.hasOwnProperty("ne")){
+            ne = node.ne
          }
          console.log(state)
          res.json(state)
@@ -339,6 +344,64 @@ idRouter.route('/tts')
       }
       res.end()
   });
+
+idRouter.route('/nextevent')
+   .put( function (req, res){
+
+      const id = req.params.id;
+      console.log("Setting Time To Next Event for " + id + " (params) to " + req.body.ne)
+
+      //console.log(req.param.id)
+      console.log("ID:" + id)
+      ms_to_ne = req.body.ne
+      console.log("Value:" + ms_to_ne)
+
+      var now = new Date().getTime()
+      console.log("Now:" + now)
+      var target = Number(now) + Number(ms_to_ne)
+      console.log("Target:" + target)
+
+      if (id in data){
+         if(req.body.ne){
+            node = data[id]
+            node[ne_tag] = target
+
+            state = {} 
+            state[value_tag] = target;
+            res.json(state)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+
+//      console.log(node)
+      res.end()
+  })
+   .get( function (req, res){
+      const id = req.params.id;
+      console.log("Getting Time To Next Event value for " + id)
+      state = {};
+      if ((id in data)){
+         node = data[id]
+         if(node.hasOwnProperty(ne_tag)){
+
+            var now = new Date().getTime()
+            console.log("Now:" + now)
+            var ttt = Number(node.nextevent) - Number(now)
+            console.log("Time To Target:" + ttt)
+
+            state[value_tag] = ttt;
+         }
+         console.log(state)
+         res.json(state)
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+      res.end()
+  });
+
 
 idRouter.route('/mode')
    .put( function (req, res){
@@ -400,6 +463,7 @@ idRouter.route('/status')
          rc[lights_tag] = node.lights;
          rc[reset_tag] = node.reset;
          rc[discovery_tag] = node.discovery;
+         rc[ne_tag] = node.ne;
          rc[tts_tag] = node.tts;
          rc[mode_tag] = node.mode;
          rc[seqid_tag] = node.seqid;
