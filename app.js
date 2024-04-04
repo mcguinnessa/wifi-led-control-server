@@ -115,10 +115,11 @@ idRouter.route('/lights')
       console.log("Setting Lights state for " + id + " (params) to " + req.body.state)
 
       //console.log(req.param.id)
-      console.log("ID:" + id)
+      console.log("Setting ID:" + id)
       console.log("State:" + req.body.state)
 
       if (!(id in data)){
+         console.log("Creating ID:" + id)
          data[id] = get_base_struct()
       }
 
@@ -219,14 +220,15 @@ idRouter.route('/reset')
       console.log("ID:" + id)
       console.log("State:" + req.body.state)
 
+      state = {}
       if (id in data){
          if(req.body.state){
             node = data[id]
             node[reset_tag] = req.body.state
 
-            state = {}
             state[state_tag] = node.reset
             res.json(state)
+            console.log(state)
          }
       } else {
          res.status(404)
@@ -239,7 +241,7 @@ idRouter.route('/reset')
   })
    .get( function (req, res){
       const id = req.params.id;
-      console.log("Getting Reset state for " + id)
+      //console.log("Getting Reset state for " + id)
       state = {};
       if ((id in data)){
          node = data[id]
@@ -247,12 +249,14 @@ idRouter.route('/reset')
          if(node.hasOwnProperty("reset")){
             state[state_tag] = node.reset;
          }
+         console.log(state)
          res.json(state)
       } else {
          res.status(404)
          .send("Not Found");
       }
-      //console.log(state)
+      console.log("Getting Reset state for " + id + ":" + state[state_tag])
+      //console.log(res)
       res.end()
   });
 
@@ -287,6 +291,12 @@ idRouter.route('/seqid')
        res.end()
   });
 
+/**
+ * Returns the TTS variable if it is less than the time until the next event
+ *    if it is greater than time to next event, then time to next event is returned
+ *    If next event is not set, TTS is returned
+ *    if both time to next event and TTS are smaller than the minimal value, the minimal value is returned
+ */
 idRouter.route('/tts')
    .put( function (req, res){
 
@@ -331,11 +341,38 @@ idRouter.route('/tts')
        */
       if ((id in data)){
          node = data[id]
-         if(node.hasOwnProperty("tts")){
-            state[value_tag] = node.tts;
-         } else if(node.hasOwnProperty("ne")){
+//         if(node.hasOwnProperty("tts")){
+//            state[value_tag] = node.tts;
+//         } else if(node.hasOwnProperty("ne")){
+//            ne = node.ne
+//         }
+         if(node.hasOwnProperty("ne")){
             ne = node.ne
+   
+            if(node.hasOwnProperty("tts")){
+               tts = node.tts
+            } else {
+               tts = MIN_TIME_TO_SLEEP_MS
+            }
+
+            var now = new Date().getTime()
+            console.log("Now:" + now)
+            var ttne = Number(ms_to_ne) - Number(now)
+            console.log("ttne:" + ttne )
+
+            if(ttne < tts){
+               state[value_tag] = ttne 
+            } else {
+               state[value_tag] = tts
+            }
+         } else if (node.hasOwnProperty("tts")){
+            state[value_tag] = node.tts
          }
+
+         if(MIN_TIME_TO_SLEEP_MS > state[value_tag]){
+            state[value_tag] = MIN_TIME_TO_SLEEP_MS
+         }
+
          console.log(state)
          res.json(state)
       } else {
@@ -368,6 +405,7 @@ idRouter.route('/nextevent')
 
             state = {} 
             state[value_tag] = target;
+            console.log(state)
             res.json(state)
          }
       } else {
