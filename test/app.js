@@ -54,8 +54,8 @@ describe("Server for LED state", function() {
    const tts_value_min = 10 * 1000;
    const tts_value_too_low = 1;
 
-   const ne_value_changed = 6 * 60 * 1000;
-   const ne_value_default = 86400;
+//   const ne_value_changed = 6 * 60 * 1000;
+//   const ne_value_default = 86400;
 
    context('with no endpoint', function() {
       it("returns status 400 and empty body", function(done) {
@@ -573,12 +573,20 @@ describe("Server for LED state", function() {
 
    context("Set next event for existing ID", function() {
       var endpoint = new_id+"/nextevent"
+      
       it("Returns a success response", function(done) {
          create_id(new_id);
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_value_changed }}, function(error, response, body) {
+         ne_offset = 60 * 60 * 1000
+         ne_expected = ne_offset + Date.now()
+         console.log("Expected:" + ne_expected);
+
+         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset }}, function(error, response, body) {
             console.log(body);
+
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected) 
+            expect(body.value).to.be.below(ne_expected + 2000) 
+           
             done();
          });
          delete_id(new_id);
@@ -588,7 +596,8 @@ describe("Server for LED state", function() {
    context("Set next event for none existing ID", function() {
       var endpoint = not_found_id+"/nextevent"
       it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_value_changed }}, function(error, response, body) {
+         ne_offset = 60 * 60 * 1000
+         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(404);
             expect(body).to.equal("Not Found");
@@ -599,21 +608,34 @@ describe("Server for LED state", function() {
 
    context("look up next event for id that has been changed", function() {
       var endpoint = new_id+"/nextevent"
+
       it("Creates the record and checks the default value", function(done) {
          create_id(new_id);
+         ne_offset = 60 * 60 * 1000
+         ne_expected = ne_offset + Date.now()
+         console.log("Expected:" + ne_expected);
          request(url+endpoint, function(error, response, body) {
+            console.log(body);
             json = JSON.parse(body);
+            console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(ne_value_default);
+            expect(json.value).to.equal(undefined)
+            //expect(json.value).to.equal(ne_value_default);
+            //expect(json.value).to.be.above(ne_expected) 
+            //expect(json.value).to.be.below(ne_expected + 2000) 
             done();
          });
       });
 
-      it("Returns a success response", function(done) {
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_value_changed }}, function(error, response, body) {
+      it("Changes the value", function(done) {
+         ne_offset_changed = 5 * 60 * 60 * 1000
+         ne_expected_changed = ne_offset_changed + Date.now()
+         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(ne_value_changed);
+            //expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected_changed) 
+            expect(body.value).to.be.below(ne_expected_changed + 2000) 
             done();
          });
       });
@@ -621,10 +643,14 @@ describe("Server for LED state", function() {
       it("Checks the value has changed", function(done) {
          request(url+endpoint, function(error, response, body) {
             json = JSON.parse(body);
+            console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(ne_value_changed);
+            //expect(json.value).to.equal(ne_value_changed);
+            expect(json.value).to.be.above(ne_expected_changed) 
+            expect(json.value).to.be.below(ne_expected_changed + 2000) 
             done();
          });
+         delete_id(new_id);
       });
    });
 
@@ -633,14 +659,51 @@ describe("Server for LED state", function() {
       it("Creates the record and checks the default value", function(done) {
          create_id(new_id);
          request(url+endpoint, function(error, response, body) {
+            console.log(body);
             json = JSON.parse(body);
+            console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(ne_value_default);
+            expect(json.value).to.equal(undefined)
+            done();
+         });
+      });
+
+      it("Checks the tts value", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(tts_value_default);
+            done();
+         });
+      });
+
+      it("Changes the value", function(done) {
+         ne_offset_changed = 5 * 60 * 60 * 1000
+         ne_expected_changed = ne_offset_changed + Date.now()
+         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            //expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected_changed) 
+            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            done();
+         });
+      });
+
+      it("Checks the tts value has been changed", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(tts_value_max);
             done();
          });
          delete_id(new_id);
       });
+
    });
+
 /***********************************************************************************/
 //
 //   context("look up sequence id for id that doesn't exist", function() {

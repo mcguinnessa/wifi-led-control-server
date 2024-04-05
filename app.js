@@ -346,10 +346,12 @@ idRouter.route('/tts')
 //         } else if(node.hasOwnProperty("ne")){
 //            ne = node.ne
 //         }
-         if(node.hasOwnProperty("ne")){
-            ne = node.ne
+         if(node.hasOwnProperty(ne_tag)){
+            console.log("Using the NE to calculate TTS")
+            //console.log(node)
+            ms_to_ne = node.nextevent
    
-            if(node.hasOwnProperty("tts")){
+            if(node.hasOwnProperty(tts_tag)){
                tts = node.tts
             } else {
                tts = MIN_TIME_TO_SLEEP_MS
@@ -357,6 +359,7 @@ idRouter.route('/tts')
 
             var now = new Date().getTime()
             console.log("Now:" + now)
+            console.log("NE:" +ms_to_ne)
             var ttne = Number(ms_to_ne) - Number(now)
             console.log("ttne:" + ttne )
 
@@ -366,6 +369,7 @@ idRouter.route('/tts')
                state[value_tag] = tts
             }
          } else if (node.hasOwnProperty("tts")){
+            console.log("No NE, so using TTS")
             state[value_tag] = node.tts
          }
 
@@ -418,18 +422,18 @@ idRouter.route('/nextevent')
   })
    .get( function (req, res){
       const id = req.params.id;
-      console.log("Getting Time To Next Event value for " + id)
+      console.log("Getting time to  Next Event value for " + id)
       state = {};
       if ((id in data)){
          node = data[id]
          if(node.hasOwnProperty(ne_tag)){
 
-            var now = new Date().getTime()
-            console.log("Now:" + now)
-            var ttt = Number(node.nextevent) - Number(now)
-            console.log("Time To Target:" + ttt)
+//            var now = new Date().getTime()
+//            console.log("Now:" + now)
+//            var ttt = Number(node.nextevent) - Number(now)
+//            console.log("Time To Target:" + ttt)
 
-            state[value_tag] = ttt;
+            state[value_tag] = node[ne_tag];
          }
          console.log(state)
          res.json(state)
