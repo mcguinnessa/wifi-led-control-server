@@ -654,7 +654,7 @@ describe("Server for LED state", function() {
       });
    });
 
-   context("look up tts for id that has been changed as next event", function() {
+   context("look up tts for id that has been changed as next event to time longer than TTS", function() {
       var endpoint = new_id+"/nextevent"
       it("Creates the record and checks the default value", function(done) {
          create_id(new_id);
@@ -668,12 +668,22 @@ describe("Server for LED state", function() {
          });
       });
 
+      tts_non_standard_value = 60075
+      it("Changes the TTS value, Returns a success response", function(done) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_non_standard_value);
+            done();
+         });
+      });
+
       it("Checks the tts value", function(done) {
          request(url+new_id+"/tts", function(error, response, body) {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_default);
+            expect(json.value).to.equal(tts_non_standard_value);
             done();
          });
       });
@@ -691,238 +701,326 @@ describe("Server for LED state", function() {
          });
       });
 
-      it("Checks the tts value has been changed", function(done) {
+      it("Checks the tts value has is the same as the changed value ", function(done) {
          request(url+new_id+"/tts", function(error, response, body) {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_max);
+            expect(json.value).to.equal(tts_non_standard_value);
             done();
          });
          delete_id(new_id);
       });
+   });
 
+   context("look up tts for id that has been changed as next event to time shorter than TTS", function() {
+      var endpoint = new_id+"/nextevent"
+      it("Creates the record and checks the default value", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(undefined)
+            done();
+         });
+      });
+
+
+      const ne_offset_changed = 10 * 60 * 1000
+      const tts_non_standard_value_high = 1200000
+      const delta = tts_non_standard_value_high - ne_offset_changed
+
+      it("Changes the TTS value, Returns a success response", function(done) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value_high }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_non_standard_value_high);
+            done();
+         });
+      });
+
+      it("Checks the tts value", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(tts_non_standard_value_high);
+            done();
+         });
+      });
+
+      it("Changes the nextevent value", function(done) {
+         ne_expected_changed = ne_offset_changed + Date.now()
+         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            //expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected_changed) 
+            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            done();
+         });
+      });
+
+      it("Checks the tts value has is the is less than the TTS", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            //expect(json.value).to.equal(tts_non_standard_value);
+            //expect(body.value).to.be.above(ne_expected_changed) 
+            expect(json.value).to.be.below(delta) 
+            expect(json.value).to.be.below(tts_non_standard_value_high) 
+            expect(json.value).to.be.above(delta - 5000) 
+            done();
+         });
+         delete_id(new_id);
+      });
    });
 
 /***********************************************************************************/
-//
-//   context("look up sequence id for id that doesn't exist", function() {
-//      var endpoint = not_found_id+"/seqid"
-//      it("Returns a valid not found response", function(done) {
-//         request(url+endpoint, function(error, response, body) {
-//            expect(response.statusCode).to.equal(404);
-//            expect(body).to.equal("Not Found");
-//            done();
-//         });
-//      });
-//   })
-//
-//   context("look up sequence id for id that does exist", function() {
-//      var endpoint = new_id+"/seqid"
-//      it("Returns a valid response", function(done) {
-//         request(url+endpoint, function(error, response, body) {
-//            console.log(body);
-//            json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.seqid).to.equal(0);
-//            done();
-//         });
-//      });
-//   })
-//
-//   context("Attempt to set sequence id", function() {
-//      var endpoint = new_id+"/seqid"
-//      it("Returns a Forbidden response", function(done) {
-//         request({url: url+endpoint, method: 'PUT', json: { mode: mode_state_changed }}, function(error, response, body) {
-//            //console.log(request);
-//            //console.log(error);
-//            //console.log(body);
-//            expect(response.statusCode).to.equal(403);
-//            expect(body).to.equal("Forbidden");
-//            done();
-//         });
-//      });
-//   })
-//
-//   context("Check sequence ID isn't incremented", function() {
-//      var endpoint = new_id+"/seqid"
-//      it("Returns a valid not found response", function(done) {
-//         request(url+endpoint, function(error, response, body) {
-//            console.log(body);
-//            json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.seqid).to.equal(0);
-//            done();
-//         });
-//      });
-//   })
-//
-///***********************************************************************************/
-//
-//   context("look up status for id that doesn't exist", function() {
-//      var endpoint = not_found_id+"/status"
-//      it("Returns a valid not found response", function(done) {
- ////        request(url+endpoint, function(error, response, body) {
- //           console.log(body);
- //           //json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(404);
-//            expect(body).to.equal("Not Found");
-//            done()
-//         });
-//      });
-//   })
-//
-//   context("look up status for id that does exist", function() {
-//      it("Returns a success response", function(done) {
-//         console.log(url+new_id+"/lights");
-//         request({url: url+new_id+"/lights", method: 'PUT', json: { state:  lights_value_initial }}, function(error, response, body) {
-//            console.log(body);
-//            expect(response.statusCode).to.equal(200);
-//            expect(body.state).to.equal(lights_value_initial);
-//            done();
-//         });
-//      });
-//
-//      var endpoint = new_id+"/status"
-//      it("Returns a valid value for each parameter", function(done) {
-//         request(url+endpoint, function(error, response, body) {
-//            console.log(body);
-//            json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.lights).to.equal("on");
-//            expect(json.tts).to.equal(tts_value_default);
-//            expect(json.discovery).to.equal(send_discovery_default);
-//            expect(json.reset).to.equal(reset_state_default);
-//            expect(json.mode).to.equal(mode_state_default);
-//            expect(json.seqid).to.be.a('number');
-//            expect(json.seqid % 1).to.equal(0);
-//            done()
-//         });
-//      });
-//   })
-//
-//   context("look up status for id that exist but only lights has been set", function() {
-//      var set_endpoint = default_new_id+"/lights"
-//      var status_endpoint = default_new_id+"/status"
-//
-//      it("Creates the record", function(done) {
-//         request({url: url+set_endpoint, method: 'PUT', json: { state: lights_value_initial }}, function(error, response, body) {
-//            expect(response.statusCode).to.equal(200);
-//            expect(body.state).to.equal("on");
-//            done()
-//         });
-//      });
-//
-//      it("Returns a valid value for each parameter", function(done) {
-//         request(url+status_endpoint, function(error, response, body2) {
-//            console.log(body2);
-//            json = JSON.parse(body2);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.lights).to.equal(lights_value_initial);
-//            expect(json.tts).to.equal(tts_value_default);
-//            expect(json.discovery).to.equal(send_discovery_default);
-//            expect(json.reset).to.equal(reset_state_default);
-//            //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);
-//            expect(json.mode).equal(mode_state_default);
-//            //expect(json.seqid).equal(1);
-//            expect(json.seqid).to.be.a('number');
-//            expect(json.seqid % 1).to.equal(0);
-//            done()
-//         });
-//      });
-//   })
-//
-//   context("Ensure sequence id increments", function() {
-//      var set_endpoint = new_id2+"/lights"
-//      var status_endpoint = new_id2+"/status"
-//
+
+   context("look up sequence id for id that doesn't exist", function() {
+      var endpoint = not_found_id+"/seqid"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up sequence id for id that does exist", function() {
+      var endpoint = new_id+"/seqid"
+      it("Returns a valid response", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(0);
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Attempt to set sequence id", function() {
+      var endpoint = new_id+"/seqid"
+      it("Returns a Forbidden response", function(done) {
+         create_id(new_id);
+         request({url: url+endpoint, method: 'PUT', json: { mode: mode_state_changed }}, function(error, response, body) {
+            //console.log(request);
+            //console.log(error);
+            //console.log(body);
+            expect(response.statusCode).to.equal(403);
+            expect(body).to.equal("Forbidden");
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Check sequence ID isn't incremented with multiple calls", function() {
+      var endpoint = new_id+"/seqid"
+      it("Returns a valid not found response", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(0);
+            done();
+         });
+      });
+
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(0);
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+/***********************************************************************************/
+
+   context("look up status for id that doesn't exist", function() {
+      var endpoint = not_found_id+"/status"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            //json = JSON.parse(body);
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done()
+         });
+      });
+   })
+
+   context("look up status for id that does exist", function() {
+      it("Returns a success response", function(done) {
+         create_id(new_id);
+         console.log(url+new_id+"/lights");
+         request({url: url+new_id+"/lights", method: 'PUT', json: { state:  lights_value_initial }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.state).to.equal(lights_value_initial);
+            done();
+         });
+      });
+
+      var endpoint = new_id+"/status"
+      it("Returns a valid value for each parameter", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.lights).to.equal("on");
+            expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            expect(json.mode).to.equal(mode_state_default);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
+            done()
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("look up status for id that exist but only lights has been set", function() {
+      var set_endpoint = default_new_id+"/lights"
+      var status_endpoint = default_new_id+"/status"
+
+      it("Creates the record", function(done) {
+         request({url: url+set_endpoint, method: 'PUT', json: { state: lights_value_initial }}, function(error, response, body) {
+            expect(response.statusCode).to.equal(200);
+            expect(body.state).to.equal("on");
+            done()
+         });
+      });
+
+      it("Returns a valid value for each parameter", function(done) {
+         create_id(new_id);
+         request(url+status_endpoint, function(error, response, body2) {
+            console.log(body2);
+            json = JSON.parse(body2);
+            expect(response.statusCode).to.equal(200);
+            expect(json.lights).to.equal(lights_value_initial);
+            expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);
+            expect(json.mode).equal(mode_state_default);
+            //expect(json.seqid).equal(1);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
+            done()
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Ensure sequence id increments", function() {
+      var set_endpoint = new_id+"/lights"
+      var status_endpoint = new_id+"/status"
+
 //      it("Creates a new record", function(done) {
 //         request({url: url+set_endpoint, method: 'PUT', json: { state: lights_value_initial }}, function(error, response, body) {
 //            expect(response.statusCode).to.equal(200);
 //            done()
 //         });
 //      });
-//
-//      it("Returns a valid value for sequence id", function(done) {
-//         request(url+status_endpoint, function(error, response, body2) {
-//            console.log(body2);
-//            json = JSON.parse(body2);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.seqid).to.equal(1);
-//            done()
-//         });
-//      });
-//
-//      it("Returns a valid incremented value for sequence id", function(done) {
-//         request(url+status_endpoint, function(error, response, body2) {
-//            console.log(body2);
-//            json = JSON.parse(body2);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.seqid).to.equal(2);
-//            done()
-//         });
-//      });
-//
-//      it("Returns a valid incremented value for sequence id", function(done) {
-//         request(url+status_endpoint, function(error, response, body2) {
-//            console.log(body2);
-//            json = JSON.parse(body2);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json.seqid).to.equal(3);
-//            done()
-//         });
-//      });
-//
+
+      it("Returns a valid value for sequence id", function(done) {
+         create_id(new_id);
+         request(url+status_endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(1);
+            done()
+         });
+      });
+
+      it("Returns a valid incremented value for sequence id", function(done) {
+         request(url+status_endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(2);
+            done()
+         });
+      });
+
+      it("Returns a valid incremented value for sequence id", function(done) {
+         request(url+status_endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.seqid).to.equal(3);
+            done()
+         });
+         delete_id(new_id);
+      });
+
 //      it("Deletes the record", function(done) {
 //         request({url: url+new_id2, method: 'DELETE'}, function(error, response, body) {
 //            expect(response.statusCode).to.equal(200);
 //            done()
 //         });
 //      });
-//   })
-//
-//
-///***********************************************************************************/
-//   context("delete id that doesn't exist", function() {
-//      var endpoint = not_found_id
-//      //console.log(url+endpoint);
-//      it("Returns a valid not found response", function(done) {
-//         request({url: url+endpoint, method: 'DELETE'}, function(error, response, body) {
-//            console.log(body);
-//            //json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(404);
-//            expect(body).to.equal("Not Found");
-//            done()
-//         });
-//      });
-//   })
-//
-//   context("delete id that does exist", function() {
-//      var endpoint = new_id
-//
+   })
+
+
+/***********************************************************************************/
+   context("delete id that doesn't exist", function() {
+      var endpoint = not_found_id
+      //console.log(url+endpoint);
+      it("Returns a valid not found response", function(done) {
+         request({url: url+endpoint, method: 'DELETE'}, function(error, response, body) {
+            console.log(body);
+            //json = JSON.parse(body);
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done()
+         });
+      });
+   })
+
+   context("delete id that does exist", function() {
+      var endpoint = new_id
+
 //      it("Creates the record", function(done) {
 //         request(url+new_id+"/status", function(error, response, body) {
 //            expect(response.statusCode).to.equal(200);
 //            done()
 //         });
 //      });
-//
-//      it("Returns a success response", function(done) {
-//         request({url: url+endpoint, method: 'DELETE'}, function(error, response, body) {
-//            //console.log(body);
-//            json = JSON.parse(body);
-//            expect(response.statusCode).to.equal(200);
-//            expect(json).to.equal(new_id);
-//            done()
-//         });
-//      });
-//
-//      it("Checks the status returns not found", function(done) {
-//         request(url+new_id+"/status", function(error, response, body) {
-//            expect(response.statusCode).to.equal(404);
-//            done()
-//         });
-//      });
-//   })
+
+      it("Returns a success response", function(done) {
+         create_id(new_id);
+         request({url: url+endpoint, method: 'DELETE'}, function(error, response, body) {
+            //console.log(body);
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json).to.equal(new_id);
+            done()
+         });
+      });
+
+      it("Checks the status returns not found", function(done) {
+         request(url+new_id+"/status", function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            done()
+         });
+      });
+   })
 
 });
