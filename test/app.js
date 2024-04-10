@@ -580,7 +580,29 @@ describe("Server for LED state", function() {
          ne_expected = ne_offset + Date.now()
          console.log("Expected:" + ne_expected);
 
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset }}, function(error, response, body) {
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset }}, function(error, response, body) {
+            console.log(body);
+
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.be.above(ne_expected) 
+            expect(body.value).to.be.below(ne_expected + 2000) 
+           
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Set next event for existing ID as a string", function() {
+      var endpoint = new_id+"/nextevent"
+      
+      it("Returns a success response", function(done) {
+         create_id(new_id);
+         ne_offset = 60 * 60 * 1000
+         ne_expected = ne_offset + Date.now()
+         console.log("Expected:" + ne_expected);
+
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset.toString() }}, function(error, response, body) {
             console.log(body);
 
             expect(response.statusCode).to.equal(200);
@@ -597,7 +619,7 @@ describe("Server for LED state", function() {
       var endpoint = not_found_id+"/nextevent"
       it("Returns a success response", function(done) {
          ne_offset = 60 * 60 * 1000
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset }}, function(error, response, body) {
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(404);
             expect(body).to.equal("Not Found");
@@ -630,7 +652,7 @@ describe("Server for LED state", function() {
       it("Changes the value", function(done) {
          ne_offset_changed = 5 * 60 * 60 * 1000
          ne_expected_changed = ne_offset_changed + Date.now()
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);
@@ -691,7 +713,7 @@ describe("Server for LED state", function() {
       it("Changes the value", function(done) {
          ne_offset_changed = 5 * 60 * 60 * 1000
          ne_expected_changed = ne_offset_changed + Date.now()
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);
@@ -753,7 +775,7 @@ describe("Server for LED state", function() {
 
       it("Changes the nextevent value", function(done) {
          ne_expected_changed = ne_offset_changed + Date.now()
-         request({url: url+endpoint, method: 'PUT', json: { ne: ne_offset_changed }}, function(error, response, body) {
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);

@@ -300,8 +300,10 @@ idRouter.route('/seqid')
 idRouter.route('/tts')
    .put( function (req, res){
 
+
       const id = req.params.id;
       console.log("Setting Time To Sleep state for " + id + " (params) to " + req.body.value)
+      console.log(req.body)
 
       //console.log(req.param.id)
       console.log("ID:" + id)
@@ -390,11 +392,12 @@ idRouter.route('/nextevent')
    .put( function (req, res){
 
       const id = req.params.id;
-      console.log("Setting Time To Next Event for " + id + " (params) to " + req.body.ne)
+      console.log("Setting Time To Next Event for " + id + " (params) to " + req.body.nextevent)
+      console.log(req.body)
 
       //console.log(req.param.id)
       console.log("ID:" + id)
-      ms_to_ne = req.body.ne
+      ms_to_ne = parseInt(req.body.nextevent)
       console.log("Value:" + ms_to_ne)
 
       var now = new Date().getTime()
@@ -403,7 +406,7 @@ idRouter.route('/nextevent')
       console.log("Target:" + target)
 
       if (id in data){
-         if(req.body.ne){
+         if(req.body.nextevent){
             node = data[id]
             node[ne_tag] = target
 
@@ -505,7 +508,7 @@ idRouter.route('/status')
          rc[lights_tag] = node.lights;
          rc[reset_tag] = node.reset;
          rc[discovery_tag] = node.discovery;
-         rc[ne_tag] = node.ne;
+         rc[ne_tag] = node.nextevent;
          rc[tts_tag] = node.tts;
          rc[mode_tag] = node.mode;
          rc[seqid_tag] = node.seqid;
