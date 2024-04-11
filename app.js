@@ -60,6 +60,40 @@ function get_base_struct() {
    return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false", mode: "prog", seqid: 0 }
 }
 
+
+function calculate_tts() {
+
+   calc_tts = MIN_TIME_TO_SLEEP_MS
+
+   if(node.hasOwnProperty(ne_tag)){
+      console.log("Using the NE to calculate TTS")
+      //console.log(node)
+      ms_to_ne = node.nextevent
+   
+      if(node.hasOwnProperty(tts_tag)){
+         tts = node.tts
+      } else {
+         tts = MIN_TIME_TO_SLEEP_MS
+      }
+
+      var now = new Date().getTime()
+      console.log("Now:" + now)
+      console.log("NE:" +ms_to_ne)
+      var ttne = Number(ms_to_ne) - Number(now)
+      console.log("ttne:" + ttne )
+
+      if(ttne < tts){
+         calc_tts  = ttne 
+      } else {
+         calc_tts = tts
+      }
+   } else if (node.hasOwnProperty("tts")){
+      console.log("No NE, so using TTS")
+      calc_tts = node.tts
+   }
+   return calc_tts
+}
+
 app.route('/')
    .get(function (req, res) {
       res.status(400)
@@ -348,32 +382,33 @@ idRouter.route('/tts')
 //         } else if(node.hasOwnProperty("ne")){
 //            ne = node.ne
 //         }
-         if(node.hasOwnProperty(ne_tag)){
-            console.log("Using the NE to calculate TTS")
-            //console.log(node)
-            ms_to_ne = node.nextevent
-   
-            if(node.hasOwnProperty(tts_tag)){
-               tts = node.tts
-            } else {
-               tts = MIN_TIME_TO_SLEEP_MS
-            }
-
-            var now = new Date().getTime()
-            console.log("Now:" + now)
-            console.log("NE:" +ms_to_ne)
-            var ttne = Number(ms_to_ne) - Number(now)
-            console.log("ttne:" + ttne )
-
-            if(ttne < tts){
-               state[value_tag] = ttne 
-            } else {
-               state[value_tag] = tts
-            }
-         } else if (node.hasOwnProperty("tts")){
-            console.log("No NE, so using TTS")
-            state[value_tag] = node.tts
-         }
+         state[value_tag] = calculate_tts(node)
+//         if(node.hasOwnProperty(ne_tag)){
+//            console.log("Using the NE to calculate TTS")
+//            //console.log(node)
+//            ms_to_ne = node.nextevent
+//   
+//            if(node.hasOwnProperty(tts_tag)){
+//               tts = node.tts
+//            } else {
+//               tts = MIN_TIME_TO_SLEEP_MS
+//            }
+//
+//            var now = new Date().getTime()
+//            console.log("Now:" + now)
+//            console.log("NE:" +ms_to_ne)
+//            var ttne = Number(ms_to_ne) - Number(now)
+//            console.log("ttne:" + ttne )
+//
+//            if(ttne < tts){
+//               state[value_tag] = ttne 
+//            } else {
+//               state[value_tag] = tts
+//            }
+//         } else if (node.hasOwnProperty("tts")){
+//            console.log("No NE, so using TTS")
+//            state[value_tag] = node.tts
+//         }
 
          if(MIN_TIME_TO_SLEEP_MS > state[value_tag]){
             state[value_tag] = MIN_TIME_TO_SLEEP_MS
@@ -509,7 +544,8 @@ idRouter.route('/status')
          rc[reset_tag] = node.reset;
          rc[discovery_tag] = node.discovery;
          rc[ne_tag] = node.nextevent;
-         rc[tts_tag] = node.tts;
+         //rc[tts_tag] = node.tts;
+         rc[tts_tag] = calculate_tts(node)
          rc[mode_tag] = node.mode;
          rc[seqid_tag] = node.seqid;
          res.json(rc)
@@ -530,11 +566,6 @@ idRouter.route('/status')
 
       //res.setHeader("Content-Type", "application/json");
       res.end()
-
-      //Reset to false after called once
-    //  data[id][reset_tag] = "false"; 
-     // data[id][discovery_tag] = "false"; 
-      //console.log(node)
   });
 
 

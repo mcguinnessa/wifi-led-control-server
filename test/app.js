@@ -749,11 +749,11 @@ describe("Server for LED state", function() {
          });
       });
 
-
       const ne_offset_changed = 10 * 60 * 1000
       const tts_non_standard_value_high = 1200000
       const delta = tts_non_standard_value_high - ne_offset_changed
 
+      //tts_non_standard_value = 60075
       it("Changes the TTS value, Returns a success response", function(done) {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value_high }}, function(error, response, body) {
             console.log(body);
@@ -795,6 +795,160 @@ describe("Server for LED state", function() {
             expect(json.value).to.be.below(delta) 
             expect(json.value).to.be.below(tts_non_standard_value_high) 
             expect(json.value).to.be.above(delta - 5000) 
+            done();
+         });
+         delete_id(new_id);
+      });
+   });
+
+   context("look up tts via status for id that has been changed as next event to time longer than TTS", function() {
+      var endpoint = new_id+"/nextevent"
+      it("Creates the record and checks the default value", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(undefined)
+            done();
+         });
+      });
+
+      tts_non_standard_value = 60075
+      it("Changes the TTS value, Returns a success response", function(done) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_non_standard_value);
+            done();
+         });
+      });
+
+      it("Checks the tts value", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(tts_non_standard_value);
+            done();
+         });
+      });
+
+      it("Changes the value", function(done) {
+         ne_offset_changed = 5 * 60 * 60 * 1000
+         ne_expected_changed = ne_offset_changed + Date.now()
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            //expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected_changed) 
+            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            done();
+         });
+      });
+
+      it("Checks the tts via status value has is the same as the changed value ", function(done) {
+         console.log("ALEX");
+         request(url+new_id+"/status", function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+
+            expect(json.lights).to.equal("on");
+            //expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            expect(json.mode).to.equal(mode_state_default);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
+            //expect(json.nextevent).to.equal(0);
+            //expect(json.nextevent).to.equal(0);
+            expect(json.nextevent).to.be.above(ne_expected_changed) 
+            expect(json.nextevent).to.be.below(ne_expected_changed + 2000) 
+            expect(json.tts).to.equal(tts_non_standard_value);
+
+            done();
+         });
+         delete_id(new_id);
+      });
+   });
+
+   context("look up tts via status for id that has been changed as next event to time shorter than TTS", function() {
+      var endpoint = new_id+"/nextevent"
+      it("Creates the record and checks the default value", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            console.log(body);
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(undefined)
+            done();
+         });
+      });
+
+      const ne_offset_changed = 10 * 60 * 1000
+      const tts_non_standard_value_high = 1200000
+      const delta = tts_non_standard_value_high - ne_offset_changed
+
+      //tts_non_standard_value = 60075
+      it("Changes the TTS value, Returns a success response", function(done) {
+         request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value_high }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.value).to.equal(tts_non_standard_value_high);
+            done();
+         });
+      });
+
+      it("Checks the tts value", function(done) {
+         request(url+new_id+"/tts", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.value).to.equal(tts_non_standard_value_high);
+            done();
+         });
+      });
+
+      it("Changes the nextevent value", function(done) {
+         var endpoint = new_id+"/nextevent"
+         ne_expected_changed = ne_offset_changed + Date.now()
+         request({url: url+endpoint, method: 'PUT', json: { nextevent: ne_offset_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            //expect(body.value).to.equal(ne_value_changed);
+            expect(body.value).to.be.above(ne_expected_changed) 
+            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            done();
+         });
+      });
+
+      it("Checks the tts value via status has is the is less than the TTS", function(done) {
+         request(url+new_id+"/status", function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            //expect(json.value).to.equal(tts_non_standard_value);
+            //expect(body.value).to.be.above(ne_expected_changed) 
+            expect(json.tts).to.be.below(delta) 
+            expect(json.tts).to.be.below(tts_non_standard_value_high) 
+            expect(json.tts).to.be.above(delta - 5000) 
+
+            expect(json.lights).to.equal("on");
+            //expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            expect(json.mode).to.equal(mode_state_default);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
+
+            //expect(json.nextevent).to.equal(0);
+            expect(json.nextevent).to.be.above(ne_expected_changed) 
+            expect(json.nextevent).to.be.below(ne_expected_changed + 2000) 
+
             done();
          });
          delete_id(new_id);
@@ -904,6 +1058,13 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
             expect(json.lights).to.equal("on");
+            expect(json.lights).to.equal("on");
+            expect(json.tts).to.equal(tts_value_default);
+            expect(json.discovery).to.equal(send_discovery_default);
+            expect(json.reset).to.equal(reset_state_default);
+            expect(json.mode).to.equal(mode_state_default);
+            expect(json.seqid).to.be.a('number');
+            expect(json.seqid % 1).to.equal(0);
             expect(json.tts).to.equal(tts_value_default);
             expect(json.discovery).to.equal(send_discovery_default);
             expect(json.reset).to.equal(reset_state_default);
