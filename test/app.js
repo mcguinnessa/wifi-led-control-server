@@ -143,7 +143,7 @@ describe("Server for LED state", function() {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_default);
+            expect(json.value).to.equal(tts_value_default.toString());
             done();
          });
          delete_id(new_id);
@@ -156,7 +156,8 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_value_changed);
+            //expect(body.value).to.equal(tts_value_changed.toString());
+            expect(body.value).to.equal(tts_value_changed.toString());
             done();
          });
          delete_id(new_id);
@@ -172,7 +173,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_default);
+            expect(json.value).to.equal(tts_value_default.toString());
             done();
          });
       });
@@ -181,7 +182,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_value_changed);
+            expect(body.value).to.equal(tts_value_changed.toString());
             done();
          });
       });
@@ -191,7 +192,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_changed);
+            expect(json.value).to.equal(tts_value_changed.toString());
             done();
          });
          delete_id(new_id);
@@ -216,7 +217,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_too_high }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_value_max);
+            expect(body.value).to.equal(tts_value_max.toString());
             done();
          });
          delete_id(new_id);
@@ -230,7 +231,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_too_low }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_value_min);
+            expect(body.value).to.equal(tts_value_min.toString());
             done();
          });
          delete_id(new_id);
@@ -247,7 +248,7 @@ describe("Server for LED state", function() {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_default);
+            expect(json.value).to.equal(tts_value_default.toString());
             done();
          });
       });
@@ -256,7 +257,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_value_changed }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_value_changed);
+            expect(body.value).to.equal(tts_value_changed.toString());
             done();
          });
       });
@@ -266,7 +267,7 @@ describe("Server for LED state", function() {
             console.log(body);
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_value_changed);
+            expect(json.value).to.equal(tts_value_changed.toString());
             done();
          });
          delete_id(new_id);
@@ -695,7 +696,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_non_standard_value);
+            expect(body.value).to.equal(tts_non_standard_value.toString());
             done();
          });
       });
@@ -705,7 +706,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_non_standard_value);
+            expect(json.value).to.equal(tts_non_standard_value.toString());
             done();
          });
       });
@@ -717,8 +718,8 @@ describe("Server for LED state", function() {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);
-            expect(body.value).to.be.above(ne_expected_changed) 
-            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            expect(parseInt(body.value)).to.be.above(ne_expected_changed) 
+            expect(parseInt(body.value)).to.be.below(ne_expected_changed + 2000) 
             done();
          });
       });
@@ -728,7 +729,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_non_standard_value);
+            expect(json.value).to.equal(tts_non_standard_value.toString());
             done();
          });
          delete_id(new_id);
@@ -758,7 +759,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value_high }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_non_standard_value_high);
+            expect(body.value).to.equal(tts_non_standard_value_high.toString());
             done();
          });
       });
@@ -768,7 +769,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_non_standard_value_high);
+            expect(json.value).to.equal(tts_non_standard_value_high.toString());
             done();
          });
       });
@@ -779,8 +780,8 @@ describe("Server for LED state", function() {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);
-            expect(body.value).to.be.above(ne_expected_changed) 
-            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            expect(parseInt(body.value)).to.be.above(ne_expected_changed) 
+            expect(parseInt(body.value)).to.be.below(ne_expected_changed + 2000) 
             done();
          });
       });
@@ -792,9 +793,9 @@ describe("Server for LED state", function() {
             expect(response.statusCode).to.equal(200);
             //expect(json.value).to.equal(tts_non_standard_value);
             //expect(body.value).to.be.above(ne_expected_changed) 
-            expect(json.value).to.be.below(delta) 
-            expect(json.value).to.be.below(tts_non_standard_value_high) 
-            expect(json.value).to.be.above(delta - 5000) 
+            expect(parseInt(json.value)).to.be.below(delta) 
+            expect(parseInt(json.value)).to.be.below(tts_non_standard_value_high) 
+            expect(parseInt(json.value)).to.be.above(delta - 5000) 
             done();
          });
          delete_id(new_id);
@@ -820,7 +821,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_non_standard_value);
+            expect(body.value).to.equal(tts_non_standard_value.toString());
             done();
          });
       });
@@ -830,7 +831,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_non_standard_value);
+            expect(json.value).to.equal(tts_non_standard_value.toString());
             done();
          });
       });
@@ -842,8 +843,8 @@ describe("Server for LED state", function() {
             console.log(body);
             expect(response.statusCode).to.equal(200);
             //expect(body.value).to.equal(ne_value_changed);
-            expect(body.value).to.be.above(ne_expected_changed) 
-            expect(body.value).to.be.below(ne_expected_changed + 2000) 
+            expect(parseInt(body.value)).to.be.above(ne_expected_changed) 
+            expect(parseInt(body.value)).to.be.below(ne_expected_changed + 2000) 
             done();
          });
       });
@@ -867,7 +868,7 @@ describe("Server for LED state", function() {
             //expect(json.nextevent).to.equal(0);
             expect(json.nextevent).to.be.above(ne_expected_changed) 
             expect(json.nextevent).to.be.below(ne_expected_changed + 2000) 
-            expect(json.tts).to.equal(tts_non_standard_value);
+            expect(json.tts).to.equal(tts_non_standard_value.toString());
 
             done();
          });
@@ -898,7 +899,7 @@ describe("Server for LED state", function() {
          request({url: url+new_id+"/tts", method: 'PUT', json: { value: tts_non_standard_value_high }}, function(error, response, body) {
             console.log(body);
             expect(response.statusCode).to.equal(200);
-            expect(body.value).to.equal(tts_non_standard_value_high);
+            expect(body.value).to.equal(tts_non_standard_value_high.toString());
             done();
          });
       });
@@ -908,7 +909,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            expect(json.value).to.equal(tts_non_standard_value_high);
+            expect(json.value).to.equal(tts_non_standard_value_high.toString());
             done();
          });
       });
@@ -931,11 +932,9 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             console.log(json);
             expect(response.statusCode).to.equal(200);
-            //expect(json.value).to.equal(tts_non_standard_value);
-            //expect(body.value).to.be.above(ne_expected_changed) 
-            expect(json.tts).to.be.below(delta) 
-            expect(json.tts).to.be.below(tts_non_standard_value_high) 
-            expect(json.tts).to.be.above(delta - 5000) 
+            expect(parseInt(json.tts)).to.be.below(delta)
+            expect(parseInt(json.tts)).to.be.below(tts_non_standard_value_high)
+            expect(parseInt(json.tts)).to.be.above(delta - 5000)
 
             expect(json.lights).to.equal("on");
             //expect(json.tts).to.equal(tts_value_default);
@@ -1058,14 +1057,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
             expect(json.lights).to.equal("on");
-            expect(json.lights).to.equal("on");
-            expect(json.tts).to.equal(tts_value_default);
-            expect(json.discovery).to.equal(send_discovery_default);
-            expect(json.reset).to.equal(reset_state_default);
-            expect(json.mode).to.equal(mode_state_default);
-            expect(json.seqid).to.be.a('number');
-            expect(json.seqid % 1).to.equal(0);
-            expect(json.tts).to.equal(tts_value_default);
+            expect(json.tts).to.equal(tts_value_default.toString());
             expect(json.discovery).to.equal(send_discovery_default);
             expect(json.reset).to.equal(reset_state_default);
             expect(json.mode).to.equal(mode_state_default);
@@ -1096,7 +1088,7 @@ describe("Server for LED state", function() {
             json = JSON.parse(body2);
             expect(response.statusCode).to.equal(200);
             expect(json.lights).to.equal(lights_value_initial);
-            expect(json.tts).to.equal(tts_value_default);
+            expect(json.tts).to.equal(tts_value_default.toString());
             expect(json.discovery).to.equal(send_discovery_default);
             expect(json.reset).to.equal(reset_state_default);
             //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);

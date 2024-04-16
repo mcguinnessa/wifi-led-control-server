@@ -57,7 +57,7 @@ const id_tag = "id";
 var data = {}
 
 function get_base_struct() {
-   return { tts : DEFAULT_TIME_TO_SLEEP_MS, reset : "false" , discovery: "false", mode: "prog", seqid: 0 }
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS.toString(), reset : "false" , discovery: "false", mode: "prog", seqid: 0 }
 }
 
 
@@ -82,7 +82,7 @@ function calculate_tts() {
       var ttne = Number(ms_to_ne) - Number(now)
       console.log("ttne:" + ttne )
 
-      if(ttne < tts){
+      if((ttne < tts) && (ttne > 0)){
          calc_tts  = ttne 
       } else {
          calc_tts = tts
@@ -91,7 +91,7 @@ function calculate_tts() {
       console.log("No NE, so using TTS")
       calc_tts = node.tts
    }
-   return calc_tts
+   return calc_tts.toString()
 }
 
 app.route('/')
@@ -177,6 +177,9 @@ idRouter.route('/lights')
    .get( function (req, res){
       //res.setHeader('Content-Type', 'application/json');
       //console.log(req)
+      console.log("Remote Address:")
+      console.log(req.socket.remoteAddress)
+
 
       const id = req.params.id;
       console.log("Getting Light state for " + id)
@@ -334,7 +337,6 @@ idRouter.route('/seqid')
 idRouter.route('/tts')
    .put( function (req, res){
 
-
       const id = req.params.id;
       console.log("Setting Time To Sleep state for " + id + " (params) to " + req.body.value)
       console.log(req.body)
@@ -353,7 +355,7 @@ idRouter.route('/tts')
       if (id in data){
          if(req.body.value){
             node = data[id]
-            node[tts_tag] = tts
+            node[tts_tag] = tts.toString()
 
             state = {} 
             state[value_tag] = node.tts;
