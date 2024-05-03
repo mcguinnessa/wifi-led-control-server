@@ -16,9 +16,10 @@ DISCOVERY = "discovery"
 MODE = "mode"
 SEQID = "seqid"
 NEXTEVENT = "nextevent"
+VOLTAGE = "voltage"
 
 #elements = ["lights", "reset", "tts", "discovery", "all"]
-elements = [LIGHTS, RESET, TTS,  DISCOVERY, MODE, SEQID, "NEXTEVENT", "all"]
+elements = [LIGHTS, RESET, TTS,  DISCOVERY, MODE, SEQID, "NEXTEVENT", VOLTAGE, "all"]
 
 def usage():
 
@@ -29,6 +30,7 @@ def usage():
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-t time_to_sleep] ")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-m prog|deep]")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-n time_to_next_event_ms] ")
+   print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-v led_voltage] ")
    print(sys.argv[0] + " [-i id] [-h host] [-p port] [-r routing_prefix] [-s "+ el_str+"]")
 
 end_point = None
@@ -40,7 +42,7 @@ command = None
 
 
 try:
-   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:m:n:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts=", "mode=", "ne="])
+   opts, args = getopt.getopt(sys.argv[1:], "?l:h:p:s:i:t:r:m:n:v:", ["help", "lights=", "host=", "port=", "routing-prefix=", "reset", "discovery", "status=", "id=", "tts=", "mode=", "ne=", "voltage="])
 
    payload = {}
    for o, a in opts:
@@ -70,6 +72,8 @@ try:
             end_point = "/seqid"
          elif NEXTEVENT == a:
             end_point = "/nextevent"
+         elif VOLTAGE == a:
+            end_point = "/ledvoltage"
         
          command = "GET"
       elif o in ("-h", "--host="):
@@ -92,6 +96,10 @@ try:
          command = "PUT"
          end_point = "/nextevent"
          payload = { 'ne': a }
+      elif o in ("-n", "--voltage="):
+         command = "PUT"
+         end_point = "/ledvoltage"
+         payload = { 'voltage': a }
 
       elif o in ("--reset"):
          command = "PUT"

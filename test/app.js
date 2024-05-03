@@ -43,6 +43,8 @@ describe("Server for LED state", function() {
    const reset_state_changed = 'true'
 
 
+   const voltage_default = 3.00
+   const voltage_changed = 2.50 
 
    const mode_state_default = 'prog'
 
@@ -538,6 +540,95 @@ describe("Server for LED state", function() {
             json = JSON.parse(body);
             expect(response.statusCode).to.equal(200);
             expect(json.mode).to.equal(mode_state_changed);
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+/* VOLTAGE **********************************************************************************/
+
+   context("look up voltage for id that doesn't exist", function() {
+      var endpoint = not_found_id+"/ledvoltage"
+      it("Returns a valid not found response", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up voltage for id that does exist but has never been set", function() {
+      var endpoint = new_id+"/ledvoltage"
+      it("Returns a valid response", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            json = JSON.parse(body);
+            console.log(json);
+            json = JSON.parse(body);
+            console.log(json);
+            expect(response.statusCode).to.equal(200);
+            expect(json.voltage).to.equal(voltage_default);
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Set voltage state for existing ID", function() {
+      var endpoint = new_id+"/ledvoltage"
+      it("Returns a success response", function(done) {
+         create_id(new_id);
+         request({url: url+endpoint, method: 'PUT', json: { voltage: voltage_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.voltage).to.equal(voltage_changed);
+            done();
+         });
+         delete_id(new_id);
+      });
+   })
+
+   context("Set voltage state for none existing ID", function() {
+      var endpoint = not_found_id+"/ledvoltage"
+      it("Returns a success response", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { voltage: 2.5 }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(404);
+            expect(body).to.equal("Not Found");
+            done();
+         });
+      });
+   })
+
+   context("look up voltage for id that has been changed", function() {
+      var endpoint = new_id+"/ledvoltage"
+
+      it("Creates the record and checks it is the default value", function(done) {
+         create_id(new_id);
+         request(url+endpoint, function(error, response, body) {
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.voltage).to.equal(voltage_default);
+            done();
+         });
+      });
+
+      it("Change the value", function(done) {
+         request({url: url+endpoint, method: 'PUT', json: { voltage: voltage_changed }}, function(error, response, body) {
+            console.log(body);
+            expect(response.statusCode).to.equal(200);
+            expect(body.voltage).to.equal(voltage_changed);
+            done();
+         });
+      });
+
+      it("Checks it is the changed value", function(done) {
+         request(url+endpoint, function(error, response, body) {
+            json = JSON.parse(body);
+            expect(response.statusCode).to.equal(200);
+            expect(json.voltage).to.equal(voltage_changed);
             done();
          });
          delete_id(new_id);
@@ -1061,6 +1152,7 @@ describe("Server for LED state", function() {
             expect(json.discovery).to.equal(send_discovery_default);
             expect(json.reset).to.equal(reset_state_default);
             expect(json.mode).to.equal(mode_state_default);
+            expect(json.voltage).to.equal(voltage_default);
             expect(json.seqid).to.be.a('number');
             expect(json.seqid % 1).to.equal(0);
             done()
@@ -1094,6 +1186,7 @@ describe("Server for LED state", function() {
             //expect(json.mode).to.not.be.undefined.to.equal(mode_state_default);
             expect(json.mode).equal(mode_state_default);
             //expect(json.seqid).equal(1);
+            expect(json.voltage).to.equal(voltage_default);
             expect(json.seqid).to.be.a('number');
             expect(json.seqid % 1).to.equal(0);
             done()

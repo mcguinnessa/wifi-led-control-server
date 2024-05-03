@@ -36,6 +36,8 @@ GET /id1/reset
 DELETE /id1
 PUT /id1/mode { mode: deep}
 GET /id1/mode 
+PUT /id1/ledvoltage { voltage: deep}
+GET /id1/ledvoltage 
 */
 
 //const hostname = '192.168.0.124';
@@ -52,12 +54,13 @@ const mode_tag = "mode";
 const state_tag = "state";
 const value_tag = "value";
 const seqid_tag = "seqid";
+const voltage_tag = "voltage";
 const id_tag = "id";
 
 var data = {}
 
 function get_base_struct() {
-   return { tts : DEFAULT_TIME_TO_SLEEP_MS.toString(), reset : "false" , discovery: "false", mode: "prog", seqid: 0 }
+   return { tts : DEFAULT_TIME_TO_SLEEP_MS.toString(), reset : "false" , discovery: "false", mode: "prog", seqid: 0, voltage: 3.0 }
 }
 
 
@@ -484,6 +487,49 @@ idRouter.route('/nextevent')
       res.end()
   });
 
+idRouter.route('/ledvoltage')
+   .put( function (req, res){
+
+      const id = req.params.id;
+      console.log("Setting LED Voltage state for " + id + " (params) to " + req.body.voltage)
+
+      console.log("ID:" + id)
+      console.log("State:" + req.body.voltage)
+
+      if (id in data){
+         if(req.body.voltage){
+            node = data[id]
+            node[voltage_tag] = req.body.voltage
+
+            rc = {}
+            rc[voltage_tag] = node.voltage
+            res.json(rc)
+         }
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+
+      res.end()
+  })
+   .get( function (req, res){
+      const id = req.params.id;
+      console.log("Getting Voltage for " + id)
+      rc = {};
+      if ((id in data)){
+         node = data[id]
+         if(node.hasOwnProperty("voltage")){
+            rc[voltage_tag] = node.voltage;
+         }
+         res.json(rc)
+      } else {
+         res.status(404)
+         .send("Not Found");
+      }
+
+      res.end()
+  });
+
 
 idRouter.route('/mode')
    .put( function (req, res){
@@ -550,6 +596,7 @@ idRouter.route('/status')
          rc[tts_tag] = calculate_tts(node)
          rc[mode_tag] = node.mode;
          rc[seqid_tag] = node.seqid;
+         rc[voltage_tag] = node.voltage;
          res.json(rc)
 
          console.log(rc)
